@@ -1,0 +1,19 @@
+name: Sync to Wagerly repo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feat/wagerly
+        uses: actions/checkout@v4
+        with:
+          ref: feat/wagerly
+          fetch-depth: 0
+
+      - name: Push to aloniewski2/wagerly
+        run: |
+          git remote add wagerly https://x-access-token:${{ secrets.WAGERLY_TOKEN }}@github.com/aloniewski2/wagerly.git
+          git push wagerly HEAD:main --force

@@ -1,0 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Wagerly design system — two themes:
+   light = "Split"  (:root)   ·   dark = "Voltage" (.dark, default)
+   Tokens transcribed from the design handoff. Identity rule:
+   "You" is always cobalt (--you), opponent always coral (--rival).
+   ============================================================ */
+@layer base {
+  :root {
+    /* Split (light) */
+    --background: 45 27% 94%;          /* --bg   #f4f2ec */
+    --foreground: 228 10% 10%;         /* --ink  #16171b */
+
+    --card: 0 0% 100%;                 /* --surface #ffffff */
+    --card-foreground: 228 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 10% 10%;
+
+    --primary: 228 10% 10%;            /* --cta-bg (ink-black in light) */
+    --primary-foreground: 0 0% 100%;   /* --cta-ink */
+
+    --secondary: 51 20% 93%;           /* --glyph-bg */
+    --secondary-foreground: 228 10% 10%;
+
+    --muted: 51 20% 93%;               /* --glyph-bg */
+    --muted-foreground: 235 5% 46%;    /* --muted #71727c */
+
+    --accent: 232 100% 59%;            /* --you */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 8 100% 59%;         /* --rival #ff4a30 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 47 16% 89%;              /* --border #e8e6df */
+    --input: 47 16% 89%;
+    --ring: 232 100% 59%;
+
+    --radius: 0.875rem;
+
+    /* Wagerly identity + status tokens */
+    --you: 232 100% 59%;               /* cobalt #2f4bff */
+    --you-tint: 234 100% 96%;          /* #eceeff */
+    --rival: 8 100% 59%;               /* coral #ff4a30 */
+    --rival-tint: 10 100% 95%;         /* #ffece8 */
+    --win: 232 100% 59%;               /* #2f4bff */
+    --amber: 37 73% 45%;               /* #c8881f */
+    --amber-bg: 39 80% 92%;            /* #fbf0db */
+    --await: 235 5% 46%;               /* #71727c */
+    --await-bg: 51 17% 92%;            /* #eeede7 */
+    --glyph-bg: 51 20% 93%;            /* #f1f0ea */
+    --surface: 0 0% 100%;              /* #ffffff (alias of card) */
+    --ink: 228 10% 10%;
+    --cta-bg: 228 10% 10%;
+    --cta-ink: 0 0% 100%;
+    --pot-bg: 228 10% 10%;             /* #16171b */
+    --pot-ink: 0 0% 100%;
+    --pot-sub: 233 4% 62%;             /* #9a9ba2 */
+    --pot-border: 0 0% 100%;
+    --backdrop: 45 15% 90%;            /* #e9e7e1 */
+    --toggle-track: 47 16% 89%;
+
+    /* Non-color tokens (used directly) */
+    --cta-shadow: 0 0 0 rgba(0,0,0,0);
+    --pot-shadow: 0 5px 14px -3px rgba(0,0,0,.4);
+    --dot-glow: 0 0 0 rgba(0,0,0,0);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 228 10% 10%;
+    --sidebar-primary: 232 100% 59%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 51 20% 93%;
+    --sidebar-accent-foreground: 228 10% 10%;
+    --sidebar-border: 47 16% 89%;
+    --sidebar-ring: 232 100% 59%;
+  }
+
+  .dark {
+    /* Voltage (dark) — default */
+    --background: 230 20% 6%;          /* --bg   #0c0d12 */
+    --foreground: 225 18% 96%;         /* --ink  #f2f3f6 */
+
+    --card: 227 18% 10%;               /* --surface #15171e */
+    --card-foreground: 225 18% 96%;
+
+    --popover: 227 18% 10%;
+    --popover-foreground: 225 18% 96%;
+
+    --primary: 233 100% 68%;           /* --cta-bg cobalt #5a6dff */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 225 18% 13%;          /* --glyph-bg #1b1e27 */
+    --secondary-foreground: 225 18% 96%;
+
+    --muted: 225 18% 13%;
+    --muted-foreground: 231 6% 53%;    /* --muted #80828e */
+
+    --accent: 233 100% 68%;            /* --you #5a6dff */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 9 100% 62%;         /* --rival #ff5a3c */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 229 14% 16%;             /* --border #23252e */
+    --input: 229 14% 16%;
+    --ring: 233 100% 68%;
+
+    --you: 233 100% 68%;               /* #5a6dff */
+    --you-tint: 229 36% 15%;           /* #181d33 */
+    --rival: 9 100% 62%;               /* #ff5a3c */
+    --rival-tint: 10 35% 13%;          /* #2e1a16 */
+    --win: 233 100% 75%;               /* #7d8cff */
+    --amber: 38 73% 55%;               /* #e0a23a */
+    --amber-bg: 38 73% 55%;            /* tag bg uses /14 alpha in component */
+    --await: 231 6% 53%;               /* #80828e */
+    --await-bg: 225 18% 13%;           /* #1b1e27 */
+    --glyph-bg: 225 18% 13%;           /* #1b1e27 */
+    --surface: 227 18% 10%;
+    --ink: 225 18% 96%;
+    --cta-bg: 233 100% 68%;
+    --cta-ink: 0 0% 100%;
+    --pot-bg: 225 18% 96%;             /* #f2f3f6 */
+    --pot-ink: 230 20% 6%;
+    --pot-sub: 231 6% 53%;
+    --pot-border: 230 20% 6%;
+    --backdrop: 225 20% 4%;            /* #08090c */
+    --toggle-track: 229 14% 16%;
+
+    --cta-shadow: 0 10px 30px -6px hsl(233 100% 68% / .55);
+    --pot-shadow: 0 0 24px -2px hsl(233 100% 68% / .55);
+    --dot-glow: 0 0 8px hsl(233 100% 68%);
+
+    --sidebar-background: 227 18% 10%;
+    --sidebar-foreground: 225 18% 96%;
+    --sidebar-primary: 233 100% 68%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 225 18% 13%;
+    --sidebar-accent-foreground: 225 18% 96%;
+    --sidebar-border: 229 14% 16%;
+    --sidebar-ring: 233 100% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Hanken Grotesk', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  code, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  /* Mono micro-label — JetBrains Mono, ALL CAPS, wide tracking */
+  .wg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+  .font-display { font-family: 'Bricolage Grotesque', sans-serif; }
+}
+
+@keyframes wgpulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: .35; }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(175 85% 45%), hsl(195 90% 55%));
+  }
+
+  .section-padding {
+    @apply py-20 md:py-28 px-6 md:px-12 lg:px-20;
+  }
+
+  .glass-card {
+    background: linear-gradient(
+      145deg,
+      hsl(var(--card) / 0.9),
+      hsl(var(--card) / 0.7)
+    );
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border));
+  }
+
+  .glass-card:hover {
+    border-color: hsl(var(--primary) / 0.25);
+  }
+
+  .tech-grid {
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .glow-line {
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4), transparent);
+    height: 1px;
+  }
+
+  .terminal-prompt::before {
+    content: '> ';
+    @apply text-primary font-mono;
+  }
+
+  .media-untinted {
+    filter: none;
+    mix-blend-mode: normal;
+  }
+
+  .scanline {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(var(--primary) / 0.015) 2px,
+      hsl(var(--primary) / 0.015) 4px
+    );
+  }
+}
