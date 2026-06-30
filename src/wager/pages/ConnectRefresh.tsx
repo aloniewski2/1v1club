@@ -9,8 +9,8 @@ export default function ConnectRefresh() {
 
   async function handleRefresh() {
     setLoading(true)
-    const returnUrl = `${window.location.origin}/wager/connect/return`
-    const refreshUrl = `${window.location.origin}/wager/connect/refresh`
+    const returnUrl = `${window.location.origin}/connect/return`
+    const refreshUrl = `${window.location.origin}/connect/refresh`
 
     const { data, error } = await supabase.functions.invoke('create-connect-account', {
       body: { return_url: returnUrl, refresh_url: refreshUrl },

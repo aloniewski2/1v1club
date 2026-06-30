@@ -16,7 +16,7 @@ export const signUpSchema = z.object({
     .refine((val) => {
       const dob = new Date(val)
       return !isNaN(dob.getTime()) && dob <= subYears(new Date(), 18)
-    }, 'You must be 18 or older to use Wagerly'),
+    }, 'You must be 18 or older to use 1v1 Club'),
   age_confirmed: z.literal(true, {
     errorMap: () => ({ message: 'You must confirm you are 18 or older' }),
   }),

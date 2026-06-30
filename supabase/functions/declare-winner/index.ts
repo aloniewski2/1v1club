@@ -88,8 +88,8 @@ serve(async (req: Request) => {
         { wager_id, actor_id: null, event_type: 'winner_confirmed', payload: { winner_id: declared_winner_id } },
       ])
 
-      // Trigger payout (call process-payout inline)
-      await triggerPayout(wager_id, declared_winner_id, wager.created_by, wager.opponent_id)
+      // Free-to-play: award ranking points instead of a cash payout.
+      await awardPoints(wager, declared_winner_id)
     } else {
       // Disagree
       newStatus = 'disputed'
@@ -136,34 +136,34 @@ serve(async (req: Request) => {
   }
 })
 
-async function triggerPayout(wagerId: string, winnerId: string, creatorId: string, opponentId: string) {
-  // Call process-payout function via internal fetch
-  const url = `${Deno.env.get('SUPABASE_URL')}/functions/v1/process-payout`
-  await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-    },
-    body: JSON.stringify({ wager_id: wagerId, winner_id: winnerId }),
-  })
+// deno-lint-ignore no-explicit-any
+async function awardPoints(wager: any, winnerId: string) {
+  const loserId = winnerId === wager.created_by ? wager.opponent_id : wager.created_by
+  const ranked = (wager.mode ?? 'ranked') === 'ranked'
 
-  // Notify both parties
-  const losingId = winnerId === creatorId ? opponentId : creatorId
+  if (loserId) {
+    await supabaseAdmin.rpc('record_match_result', {
+      p_winner: winnerId,
+      p_loser: loserId,
+      p_ranked: ranked,
+    })
+  }
+
+  const pts = ranked ? '+25 pts' : 'a casual win'
   await supabaseAdmin.from('notifications').insert([
     {
       user_id: winnerId,
-      wager_id: wagerId,
-      type: 'payout_sent',
+      wager_id: wager.id,
+      type: 'match_won',
       title: 'You won! 🏆',
-      body: 'Payout is on its way to your account.',
+      body: ranked ? 'You earned +25 ranking points.' : 'Casual win recorded.',
     },
-    {
-      user_id: losingId,
-      wager_id: wagerId,
-      type: 'payout_sent',
+    ...(loserId ? [{
+      user_id: loserId,
+      wager_id: wager.id,
+      type: 'match_complete',
       title: 'Challenge complete',
-      body: 'The winner has been confirmed and paid out.',
-    },
+      body: `Your opponent took the win (${pts}).`,
+    }] : []),
   ])
 }

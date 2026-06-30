@@ -29,7 +29,8 @@ export default function WagerInvite() {
 
   const sport = SPORT_CONFIG[wager.sport]
   const url = buildInviteUrl(wager.invite_token)
-  const stakeStr = formatCents(wager.wager_amount_cents)
+  const ranked = wager.mode !== 'casual'
+  const categoryLabel = wager.category || wager.custom_sport_label || sport.label
 
   async function handleCopy() {
     try { await navigator.clipboard.writeText(url) } catch { /* noop */ }
@@ -39,7 +40,7 @@ export default function WagerInvite() {
 
   return (
     <div className="flex min-h-[calc(100vh-2rem)] flex-col">
-      <ScreenHeader label="INVITE" onBack={() => navigate('/wager')} />
+      <ScreenHeader label="INVITE" onBack={() => navigate('/')} />
 
       <div className="mt-[22px] text-center">
         <div className="mx-auto flex h-[60px] w-[60px] items-center justify-center rounded-full bg-you-tint">
@@ -47,7 +48,7 @@ export default function WagerInvite() {
         </div>
         <h1 className="mt-3.5 font-display text-[26px] font-extrabold text-ink">Challenge is live</h1>
         <p className="mt-1 text-[13px] font-medium text-muted-foreground">
-          {sport.label} · {formatPot(wager.wager_amount_cents)} pot · winner takes {formatCents(calcPayout(wager.wager_amount_cents))}
+          {categoryLabel} · {ranked ? 'ranked · +25 pts to win' : 'casual'}
         </p>
       </div>
 
@@ -55,8 +56,8 @@ export default function WagerInvite() {
         <MatchupBar
           height={96}
           seam={28}
-          pot={formatPot(wager.wager_amount_cents)}
-          you={{ name: 'You', initial: initialsOf(profile?.display_name, 1), sub: `PAID ${stakeStr}` }}
+          pot={ranked ? '+25 PTS' : 'CASUAL'}
+          you={{ name: 'You', initial: initialsOf(profile?.display_name, 1), sub: 'YOU' }}
           rival={{ name: 'Pending', initial: '?', sub: 'NOT JOINED' }}
           rivalPending
         />
@@ -80,12 +81,12 @@ export default function WagerInvite() {
       </div>
 
       <div className="mt-auto pb-2 pt-6">
-        <PrimaryCTA onClick={() => navigate(`/wager/${wager.id}`)}>
+        <PrimaryCTA onClick={() => navigate(`/${wager.id}`)}>
           <Play className="h-[15px] w-[15px]" fill="currentColor" strokeWidth={0} />
           Go to challenge
         </PrimaryCTA>
         <button
-          onClick={() => navigate(`/wager/join/${wager.invite_token}`)}
+          onClick={() => navigate(`/join/${wager.invite_token}`)}
           className="mt-3 w-full text-center text-[12px] font-semibold"
           style={{ color: 'hsl(var(--win))' }}
         >

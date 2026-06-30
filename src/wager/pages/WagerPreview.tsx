@@ -1,5 +1,5 @@
 /**
- * DEV-ONLY visual preview of the restyled Wagerly screens with mock data.
+ * DEV-ONLY visual preview of the restyled 1v1 Club screens with mock data.
  * Lets the design be verified without a Supabase login. Not linked in the app;
  * remove the route in App.tsx if you don't want it shipped.
  */
@@ -290,7 +290,7 @@ function Invite() {
       </div>
       <div className="wg-label mt-[22px]">SHARE LINK</div>
       <div className="mt-2.5 flex items-center gap-2.5 rounded-[13px] border border-border bg-surface py-2 pl-3.5 pr-2">
-        <span className="flex-1 truncate font-mono text-[13px] font-semibold text-ink">wagerly.gg/j/9F2K-A7</span>
+        <span className="flex-1 truncate font-mono text-[13px] font-semibold text-ink">1v1club.com/j/9F2K-A7</span>
         <button onClick={() => setCopied(true)} className="shrink-0 rounded-[9px] px-3.5 py-2.5 text-xs font-bold text-[hsl(var(--cta-ink))]" style={{ background: 'hsl(var(--cta-bg))', boxShadow: 'var(--cta-shadow)' }}>{copied ? 'Copied ✓' : 'Copy'}</button>
       </div>
       <div className="mt-4 flex items-center gap-2 px-0.5">
@@ -357,7 +357,7 @@ function Dispute() {
       </div>
       <div className="wg-label mt-[22px]">HOW TO RESOLVE</div>
       <div className="mt-2.5 flex flex-col gap-[9px]">
-        {[{ icon: <FileText className="h-[17px] w-[17px]" strokeWidth={2} />, t: 'Add evidence', s: 'Scorecard photo or witness' }, { icon: <Shield className="h-[17px] w-[17px]" strokeWidth={2} />, t: 'Wagerly review', s: 'A mod decides within 24h' }].map((r) => (
+        {[{ icon: <FileText className="h-[17px] w-[17px]" strokeWidth={2} />, t: 'Add evidence', s: 'Scorecard photo or witness' }, { icon: <Shield className="h-[17px] w-[17px]" strokeWidth={2} />, t: '1v1 Club review', s: 'A mod decides within 24h' }].map((r) => (
           <div key={r.t} className="flex items-center gap-3 rounded-[13px] border border-border bg-surface px-3.5 py-3">
             <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-glyph text-ink">{r.icon}</span>
             <div className="flex-1"><div className="text-[13px] font-bold text-ink">{r.t}</div><div className="mt-px text-[11px] font-medium text-muted-foreground">{r.s}</div></div>

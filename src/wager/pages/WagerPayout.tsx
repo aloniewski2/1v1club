@@ -80,8 +80,8 @@ export default function WagerPayout() {
       </div>
 
       <div className="mt-auto pb-2 pt-6">
-        <PrimaryCTA onClick={() => navigate('/wager')}>Back to home</PrimaryCTA>
-        <button onClick={() => navigate('/wager/create')} className="mt-3 w-full text-center text-[12px] font-bold" style={{ color: 'hsl(var(--win))' }}>
+        <PrimaryCTA onClick={() => navigate('/')}>Back to home</PrimaryCTA>
+        <button onClick={() => navigate('/create')} className="mt-3 w-full text-center text-[12px] font-bold" style={{ color: 'hsl(var(--win))' }}>
           Rematch →
         </button>
       </div>

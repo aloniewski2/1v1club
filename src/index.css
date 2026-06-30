@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 /* ============================================================
-   Wagerly design system — two themes:
+   1v1 Club design system — two themes:
    light = "Split"  (:root)   ·   dark = "Voltage" (.dark, default)
    Tokens transcribed from the design handoff. Identity rule:
    "You" is always cobalt (--you), opponent always coral (--rival).
@@ -43,7 +43,7 @@
 
     --radius: 0.875rem;
 
-    /* Wagerly identity + status tokens */
+    /* 1v1 Club identity + status tokens */
     --you: 232 100% 59%;               /* cobalt #2f4bff */
     --you-tint: 234 100% 96%;          /* #eceeff */
     --rival: 8 100% 59%;               /* coral #ff4a30 */

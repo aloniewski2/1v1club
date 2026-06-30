@@ -12,7 +12,7 @@ export default function ConnectReturn() {
   useEffect(() => {
     if (!loading && profile?.stripe_account_ready) {
       setReady(true)
-      const timer = setTimeout(() => navigate('/wager'), 3000)
+      const timer = setTimeout(() => navigate('/'), 3000)
       return () => clearTimeout(timer)
     }
   }, [profile, loading, navigate])

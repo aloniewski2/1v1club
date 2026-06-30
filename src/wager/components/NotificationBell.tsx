@@ -44,7 +44,7 @@ export default function NotificationBell({ userId }: Props) {
               <button
                 key={n.id}
                 className={`w-full text-left px-3 py-2.5 border-b last:border-b-0 hover:bg-muted transition-colors ${!n.read ? 'bg-primary/5' : ''}`}
-                onClick={() => { if (n.wager_id) navigate(`/wager/${n.wager_id}`) }}
+                onClick={() => { if (n.wager_id) navigate(`/${n.wager_id}`) }}
               >
                 <p className="text-sm font-medium">{n.title}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>

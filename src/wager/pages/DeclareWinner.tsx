@@ -91,6 +91,11 @@ export default function DeclareWinner() {
     const path = `${wager.id}/${user.id}-${Date.now()}.${ext}`
     const { error } = await supabase.storage.from('wager-proofs').upload(path, proofFile, { contentType: proofFile.type, upsert: false })
     if (error) throw new Error('Proof upload failed: ' + error.message)
+    // Fingerprint the image server-side; warn (but don't block) on reuse.
+    const { data: reg } = await supabase.functions.invoke('register-proof', {
+      body: { wager_id: wager.id, storage_path: path, context: 'declaration' },
+    })
+    if (reg?.duplicate) toast.warning('Note: this proof image was already used on another wager.')
     return path
   }
 
@@ -113,13 +118,13 @@ export default function DeclareWinner() {
     if (error) {
       toast.error('Failed to declare winner: ' + error.message)
     } else if (data?.status === 'completed') {
-      navigate(`/wager/${id}/payout`)
+      navigate(`/${id}/payout`)
     } else if (data?.status === 'disputed') {
       toast.error("Results don't match — opening review.")
-      navigate(`/wager/${id}/dispute`)
+      navigate(`/${id}/dispute`)
     } else {
       toast.success('Declaration submitted. Waiting for your opponent.')
-      navigate(`/wager/${id}`)
+      navigate(`/${id}`)
     }
   }
 
@@ -146,7 +151,7 @@ export default function DeclareWinner() {
 
   return (
     <div className="flex min-h-[calc(100vh-2rem)] flex-col">
-      <ScreenHeader label="DECLARE RESULT" onBack={() => navigate(`/wager/${id}`)} />
+      <ScreenHeader label="DECLARE RESULT" onBack={() => navigate(`/${id}`)} />
 
       <h1 className="mt-[18px] font-display text-[30px] font-extrabold text-ink">Who won?</h1>
       <p className="mt-1.5 text-[13px] font-medium text-muted-foreground">

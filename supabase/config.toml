@@ -1,0 +1,9 @@
+project_id = "nbzoipxipqpeivqsfflh"
+
+# Stripe calls this with a signature, not a Supabase JWT.
+[functions.stripe-webhook]
+verify_jwt = false
+
+# Invoked by the scheduler with a CRON_SECRET bearer, not a JWT.
+[functions.resolve-expired-wagers]
+verify_jwt = false

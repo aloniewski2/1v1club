@@ -26,7 +26,7 @@ interface Props {
 }
 
 /**
- * Signature Wagerly component — a horizontal bar split by a diagonal seam with
+ * Signature 1v1 Club component — a horizontal bar split by a diagonal seam with
  * the pot rendered as a centered circular "coin". You = cobalt, rival = coral.
  */
 export default function MatchupBar({

@@ -36,13 +36,29 @@ serve(async (req: Request) => {
     const now = new Date().toISOString()
     let finalStatus = 'cancelled'
 
+    const label = wager.category ?? wager.sport
+    const creatorStake = wager.creator_stake_cents ?? Math.round(wager.wager_amount_cents / 2)
+    const opponentStake = wager.opponent_stake_cents ?? Math.round(wager.wager_amount_cents / 2)
+
     // Refund if opponent also paid (opponent_joined state)
     if (wager.status === 'opponent_joined' && wager.opponent_payment_intent_id) {
       await stripe.refunds.create({ payment_intent: wager.opponent_payment_intent_id })
+      if (wager.opponent_id) {
+        await supabaseAdmin.from('ledger_entries').insert({
+          user_id: wager.opponent_id, wager_id, type: 'stake_release',
+          amount_cents: opponentStake, status: 'settled',
+          description: `Stake refunded · ${label}`,
+        })
+      }
     }
     if (wager.creator_payment_intent_id && wager.creator_paid_at) {
       await stripe.refunds.create({ payment_intent: wager.creator_payment_intent_id })
       finalStatus = 'refunded'
+      await supabaseAdmin.from('ledger_entries').insert({
+        user_id: wager.created_by, wager_id, type: 'stake_release',
+        amount_cents: creatorStake, status: 'settled',
+        description: `Stake refunded · ${label}`,
+      })
     }
 
     await supabaseAdmin.from('wagers').update({

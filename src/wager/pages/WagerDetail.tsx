@@ -30,12 +30,6 @@ export default function WagerDetail() {
   const [proofUrls, setProofUrls] = useState<{ creator?: string; opponent?: string }>({})
 
   useEffect(() => {
-    if (searchParams.get('paid') === 'true') {
-      toast.success('Payment submitted! Waiting for Stripe confirmation…')
-    }
-  }, [searchParams])
-
-  useEffect(() => {
     if (!wager) return
     const { creator_proof_path, opponent_proof_path } = wager
     if (!creator_proof_path && !opponent_proof_path) return
@@ -74,17 +68,15 @@ export default function WagerDetail() {
   const isCompleted = wager.status === 'completed'
   const iWon = isCompleted && wager.confirmed_winner_id === user?.id
 
-  const myPaid = isCreator ? wager.creator_paid_at : wager.opponent_paid_at
-  const theirPaid = isCreator ? wager.opponent_paid_at : wager.creator_paid_at
   const rivalPending = !them
-
-  const stakeStr = formatCents(wager.wager_amount_cents)
+  const ranked = wager.mode !== 'casual'
+  const stakeStr = ranked ? '+25 PTS' : 'CASUAL'
 
   return (
     <div className="flex min-h-[calc(100vh-2rem)] flex-col">
       <ScreenHeader
         label={sport.label.toUpperCase()}
-        onBack={() => navigate('/wager')}
+        onBack={() => navigate('/')}
         right={<StatusBadge status={wager.status} />}
       />
 
@@ -96,12 +88,12 @@ export default function WagerDetail() {
         <MatchupBar
           height={112}
           seam={30}
-          pot={formatPot(wager.wager_amount_cents)}
-          you={{ name: 'You', initial: initialsOf(me?.display_name, 1), sub: myPaid ? `PAID ${stakeStr}` : 'NOT PAID' }}
+          pot={stakeStr}
+          you={{ name: 'You', initial: initialsOf(me?.display_name, 1), sub: 'YOU' }}
           rival={{
             name: them?.display_name ?? 'Pending',
             initial: rivalPending ? '?' : initialsOf(them?.display_name, 1),
-            sub: rivalPending ? 'NOT JOINED' : theirPaid ? `PAID ${stakeStr}` : 'NOT PAID',
+            sub: rivalPending ? 'NOT JOINED' : 'OPPONENT',
           }}
           rivalPending={rivalPending}
         />
@@ -118,7 +110,7 @@ export default function WagerDetail() {
             <Trophy className="mx-auto mb-1.5 h-8 w-8 text-you" />
             <p className="font-display text-lg font-extrabold text-ink">You won.</p>
             <p className="text-sm text-muted-foreground">
-              {formatCents(calcPayout(wager.wager_amount_cents))} sent to your payout account
+              {ranked ? '+25 ranking points added' : 'Casual win recorded'}
             </p>
           </motion.div>
         )}
@@ -126,25 +118,21 @@ export default function WagerDetail() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3.5 rounded-[18px] border border-border bg-surface p-4 text-center">
             <p className="font-display font-extrabold text-ink">Challenge complete</p>
             <p className="text-sm text-muted-foreground">
-              {them?.display_name ?? 'Your opponent'} won {formatCents(calcPayout(wager.wager_amount_cents))}
+              {them?.display_name ?? 'Your opponent'} took the win{ranked ? ' (+25 pts)' : ''}
             </p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Escrow card */}
-      <div className="mt-3.5 rounded-[18px] border border-border bg-surface p-[18px]">
-        <div className="flex flex-col gap-[9px] text-[13px] font-medium text-muted-foreground">
-          <Row label="Your stake" value={`${stakeStr} ${myPaid ? '✓' : ''}`} />
-          <Row label={`${them?.display_name ?? 'Opponent'}'s stake`} value={rivalPending ? '—' : `${stakeStr} ${theirPaid ? '✓' : ''}`} />
-          <Row label={`Platform fee (${PLATFORM_FEE_PCT}%)`} value={`−${formatCents(calcPlatformFee(wager.wager_amount_cents))}`} />
-          <div className="mt-0.5 flex items-center justify-between border-t border-border pt-[11px]">
-            <span className="font-display text-sm font-extrabold text-ink">Winner takes</span>
-            <span className="font-display text-[20px] font-extrabold tabular-nums" style={{ color: 'hsl(var(--win))' }}>
-              {formatCents(calcPayout(wager.wager_amount_cents))}
-            </span>
-          </div>
+      {/* Match card */}
+      <div className="mt-3.5 flex items-center justify-between rounded-[18px] border border-border bg-surface p-[18px]">
+        <div className="flex items-center gap-2.5">
+          <Trophy className="h-[18px] w-[18px]" style={{ color: ranked ? 'hsl(var(--win))' : 'hsl(var(--muted-foreground))' }} strokeWidth={2} />
+          <span className="font-display text-sm font-extrabold text-ink">{ranked ? 'Ranked match' : 'Casual match'}</span>
         </div>
+        <span className="font-display text-[17px] font-extrabold" style={{ color: 'hsl(var(--win))' }}>
+          {ranked ? '+25 pts to win' : 'For fun'}
+        </span>
       </div>
 
       {/* Date / place chips */}
@@ -162,7 +150,7 @@ export default function WagerDetail() {
       {/* Trash talk */}
       {them && (wager.status === 'active' || wager.status === 'declaring') && (
         <button
-          onClick={() => navigate(`/wager/${wager.id}/chat`)}
+          onClick={() => navigate(`/${wager.id}/chat`)}
           className="mt-3 flex items-center gap-3 rounded-[14px] border border-border bg-surface px-3.5 py-3"
         >
           <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[11px] bg-you-tint text-you">
@@ -253,10 +241,6 @@ function ActionPanel({ wager, isCreator, navigate }: {
 }) {
   const { status } = wager
 
-  if ((status === 'pending_payment' && isCreator) || (status === 'opponent_joined' && !isCreator)) {
-    return <PrimaryCTA onClick={() => navigate(`/wager/${wager.id}/pay`)}>Pay to activate</PrimaryCTA>
-  }
-
   if (status === 'awaiting_opponent' && isCreator) {
     return (
       <div className="space-y-4">
@@ -265,7 +249,7 @@ function ActionPanel({ wager, isCreator, navigate }: {
           <p className="text-sm font-medium text-muted-foreground">Waiting for your opponent to accept…</p>
         </div>
         <InviteSharePanel inviteToken={wager.invite_token} />
-        <PrimaryCTA onClick={() => navigate(`/wager/${wager.id}/invite`)}>Open invite screen</PrimaryCTA>
+        <PrimaryCTA onClick={() => navigate(`/${wager.id}/invite`)}>Open invite screen</PrimaryCTA>
       </div>
     )
   }
@@ -273,10 +257,10 @@ function ActionPanel({ wager, isCreator, navigate }: {
   if (status === 'active') {
     return (
       <>
-        <PrimaryCTA onClick={() => navigate(`/wager/${wager.id}/declare`)}>Declare the winner</PrimaryCTA>
+        <PrimaryCTA onClick={() => navigate(`/${wager.id}/declare`)}>Declare the winner</PrimaryCTA>
         <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] font-medium text-muted-foreground">
           <Lock className="h-3 w-3" style={{ color: 'hsl(var(--win))' }} strokeWidth={2} />
-          Funds held securely until both confirm
+          Both players confirm the result to lock it in
         </div>
       </>
     )
@@ -290,7 +274,7 @@ function ActionPanel({ wager, isCreator, navigate }: {
         <p className="text-sm font-medium">Waiting for your opponent to declare</p>
       </div>
     ) : (
-      <PrimaryCTA onClick={() => navigate(`/wager/${wager.id}/declare`)}>Confirm the result</PrimaryCTA>
+      <PrimaryCTA onClick={() => navigate(`/${wager.id}/declare`)}>Confirm the result</PrimaryCTA>
     )
   }
 
@@ -302,9 +286,9 @@ function ActionPanel({ wager, isCreator, navigate }: {
           <p className="text-sm font-medium">Results don't match — under review</p>
         </div>
         <p className="text-[11px] font-medium text-muted-foreground">
-          You both claimed the win. The pot is frozen until a mod resolves it (within 48 hours).
+          You both claimed the win. The result is on hold until a mod resolves it (within 48 hours).
         </p>
-        <PrimaryCTA onClick={() => navigate(`/wager/${wager.id}/dispute`)}>Open review</PrimaryCTA>
+        <PrimaryCTA onClick={() => navigate(`/${wager.id}/dispute`)}>Open review</PrimaryCTA>
       </div>
     )
   }

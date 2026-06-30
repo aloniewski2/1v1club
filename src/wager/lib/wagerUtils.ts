@@ -5,18 +5,17 @@ export function formatCents(cents: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 }
 
-export function formatPot(wagerAmountCents: number): string {
-  return formatCents(wagerAmountCents * 2)
+// wager_amount_cents is now the TOTAL POT (creator_stake + opponent_stake).
+export function formatPot(potCents: number): string {
+  return formatCents(potCents)
 }
 
-export function calcPlatformFee(wagerAmountCents: number): number {
-  const pot = wagerAmountCents * 2
-  return Math.round(pot * (PLATFORM_FEE_PCT / 100))
+export function calcPlatformFee(potCents: number): number {
+  return Math.round(potCents * (PLATFORM_FEE_PCT / 100))
 }
 
-export function calcPayout(wagerAmountCents: number): number {
-  const pot = wagerAmountCents * 2
-  return pot - calcPlatformFee(wagerAmountCents)
+export function calcPayout(potCents: number): number {
+  return potCents - calcPlatformFee(potCents)
 }
 
 export function isInviteExpired(inviteExpiresAt: string): boolean {
@@ -31,7 +30,7 @@ export function formatStatus(status: WagerStatus): string {
 }
 
 export function buildInviteUrl(inviteToken: string): string {
-  return `${window.location.origin}/wager/join/${inviteToken}`
+  return `${window.location.origin}/join/${inviteToken}`
 }
 
 export function dollarsToCenter(dollars: number): number {
@@ -48,7 +47,7 @@ export function initialsOf(name: string | null | undefined, max = 2): string {
     .slice(0, max)
 }
 
-/** Sum of total pots (each wager = amount × 2), in cents. */
+/** Sum of total pots, in cents. */
 export function sumPot(wagers: { wager_amount_cents: number }[]): number {
-  return wagers.reduce((acc, w) => acc + w.wager_amount_cents * 2, 0)
+  return wagers.reduce((acc, w) => acc + w.wager_amount_cents, 0)
 }

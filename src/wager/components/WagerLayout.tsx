@@ -13,7 +13,7 @@ export default function WagerLayout() {
   }
 
   if (!user) {
-    return <Navigate to="/wager/auth" replace />
+    return <Navigate to="/auth" replace />
   }
 
   return (

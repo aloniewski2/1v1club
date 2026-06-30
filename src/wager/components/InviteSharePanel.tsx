@@ -20,7 +20,7 @@ export default function InviteSharePanel({ inviteToken }: Props) {
 
   async function handleShare() {
     if (navigator.share) {
-      await navigator.share({ title: 'Wagerly', text: 'Accept my challenge!', url })
+      await navigator.share({ title: '1v1 Club', text: 'Accept my challenge!', url })
     } else {
       handleCopy()
     }

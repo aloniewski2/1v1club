@@ -15,6 +15,7 @@ const AWAITING_STATUSES = ['pending_payment', 'awaiting_opponent']
 export default function WagerCard({ wager, currentUserId }: Props) {
   const navigate = useNavigate()
   const sport = SPORT_CONFIG[wager.sport]
+  const categoryLabel = wager.category || wager.custom_sport_label || sport.label
   const isCreator = wager.created_by === currentUserId
   const opponent = isCreator ? wager.opponent_profile : wager.creator_profile
 
@@ -23,7 +24,7 @@ export default function WagerCard({ wager, currentUserId }: Props) {
 
   return (
     <button
-      onClick={() => navigate(`/wager/${wager.id}`)}
+      onClick={() => navigate(`/${wager.id}`)}
       className="flex w-full items-center gap-[11px] rounded-[13px] border border-border bg-surface px-[13px] py-[11px] text-left transition-colors hover:border-you/40"
     >
       <span
@@ -35,7 +36,7 @@ export default function WagerCard({ wager, currentUserId }: Props) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-[7px]">
-          <span className="text-sm font-bold text-ink">{sport.label}</span>
+          <span className="text-sm font-bold text-ink">{categoryLabel}</span>
           <StatusBadge status={wager.status} className="rounded-[5px] px-1.5 py-0.5" />
         </span>
         <span className="mt-0.5 block truncate text-[11px] font-medium text-muted-foreground">
@@ -43,8 +44,8 @@ export default function WagerCard({ wager, currentUserId }: Props) {
           {wager.description}
         </span>
       </span>
-      <span className="font-display text-sm font-extrabold tabular-nums text-ink">
-        {formatPot(wager.wager_amount_cents)}
+      <span className="font-display text-[11px] font-extrabold tabular-nums" style={{ color: wager.mode === 'casual' ? 'hsl(var(--muted-foreground))' : 'hsl(var(--win))' }}>
+        {wager.mode === 'casual' ? 'CASUAL' : '+25'}
       </span>
     </button>
   )
