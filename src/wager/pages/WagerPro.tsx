@@ -4,6 +4,8 @@ import { Crown, Check, BarChart3, Infinity as InfinityIcon, Shield, Sparkles } f
 import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { getPublicWebOrigin } from '../lib/wagerUtils'
+import { openExternalUrl } from '../lib/nativeBrowser'
 import ScreenHeader from '../components/ScreenHeader'
 import PrimaryCTA from '../components/PrimaryCTA'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -24,23 +26,26 @@ export default function WagerPro() {
 
   const isPro = Boolean(profile?.is_pro)
 
-  // Handle return from Stripe Checkout.
+  async function refreshSubscription() {
+    setSyncing(true)
+    const { data } = await supabase.functions.invoke('sync-subscription')
+    setSyncing(false)
+    if (data?.is_pro) {
+      toast.success("You're 1v1 Club Pro! 👑")
+      setTimeout(() => window.location.reload(), 600)
+    } else {
+      toast.message('No active subscription found yet — refresh in a moment if you just paid.')
+    }
+  }
+
+  // Handle return from Stripe Checkout (web: query params on this page).
   useEffect(() => {
     const status = params.get('status')
     if (!status || !user) return
     if (status === 'success') {
-      setSyncing(true)
-      supabase.functions.invoke('sync-subscription').then(({ data }) => {
-        setSyncing(false)
-        params.delete('status')
-        setParams(params, { replace: true })
-        if (data?.is_pro) {
-          toast.success("You're 1v1 Club Pro! 👑")
-          setTimeout(() => window.location.reload(), 600)
-        } else {
-          toast.message('Subscription is processing — refresh in a moment.')
-        }
-      })
+      refreshSubscription()
+      params.delete('status')
+      setParams(params, { replace: true })
     } else if (status === 'cancelled') {
       params.delete('status')
       setParams(params, { replace: true })
@@ -50,22 +55,25 @@ export default function WagerPro() {
 
   async function upgrade() {
     setBusy(true)
+    // The success/cancel redirect always points at the public web origin — on
+    // native the in-app browser's close event (not the redirect) triggers the
+    // re-sync, so this URL just needs to be a valid https destination.
     const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
-      body: { origin: window.location.origin },
+      body: { origin: getPublicWebOrigin() },
     })
     setBusy(false)
     if (error || !data?.url) return toast.error(error?.message ?? 'Could not start checkout')
-    window.location.href = data.url
+    await openExternalUrl(data.url, refreshSubscription)
   }
 
   async function manage() {
     setBusy(true)
     const { data, error } = await supabase.functions.invoke('manage-subscription', {
-      body: { origin: window.location.origin },
+      body: { origin: getPublicWebOrigin() },
     })
     setBusy(false)
     if (error || !data?.url) return toast.error(error?.message ?? 'Could not open billing portal')
-    window.location.href = data.url
+    await openExternalUrl(data.url, refreshSubscription)
   }
 
   if (loading || syncing) return <Skeleton className="mt-10 h-80 w-full rounded-[18px]" />

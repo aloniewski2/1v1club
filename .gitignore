@@ -25,3 +25,13 @@ dist-ssr
 
 supabase/.temp/
 *.mp4
+
+# iOS (Capacitor) — the native project itself is committed, but build
+# artifacts, the synced web-asset copy, and user-machine Xcode state are not.
+ios/DerivedData/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/.xcode.env.local
+resources/sim-screens/

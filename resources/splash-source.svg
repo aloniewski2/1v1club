@@ -1,0 +1,23 @@
+<svg width="2732" height="2732" viewBox="0 0 2732 2732" xmlns="http://www.w3.org/2000/svg">
+  <rect width="2732" height="2732" fill="#0c0d12"/>
+  <g transform="translate(1366,1266)">
+    <g transform="scale(7.3)">
+      <defs>
+        <clipPath id="coin-clip">
+          <circle cx="0" cy="0" r="48"/>
+        </clipPath>
+      </defs>
+      <g clip-path="url(#coin-clip)">
+        <polygon points="-50,-50 50,-50 -50,50" fill="#5a6dff"/>
+        <polygon points="50,-50 50,50 -50,50" fill="#ff5a3c"/>
+        <line x1="50" y1="-50" x2="-50" y2="50" stroke="#0c0d12" stroke-width="3.2"/>
+      </g>
+      <circle cx="0" cy="0" r="48" fill="none" stroke="#f2f3f6" stroke-width="3.2"/>
+      <circle cx="0" cy="0" r="13" fill="#0c0d12" stroke="#f2f3f6" stroke-width="3.2"/>
+      <circle cx="0" cy="0" r="4.5" fill="#f2f3f6"/>
+    </g>
+  </g>
+  <text x="1366" y="1780" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-weight="800" font-size="140" letter-spacing="-2">
+    <tspan fill="#f2f3f6">1v1</tspan><tspan fill="#5a6dff">club</tspan>
+  </text>
+</svg>

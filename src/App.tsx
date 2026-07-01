@@ -33,6 +33,8 @@ import WagerLeaderboard from "./wager/pages/WagerLeaderboard";
 import WagerAddFriend from "./wager/pages/WagerAddFriend";
 import AdminReview from "./wager/pages/AdminReview";
 import WagerPro from "./wager/pages/WagerPro";
+import DeepLinkListener from "./wager/components/DeepLinkListener";
+import NativeStatusBar from "./wager/components/NativeStatusBar";
 
 const queryClient = new QueryClient();
 
@@ -42,7 +44,9 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <NativeStatusBar />
         <BrowserRouter>
+          <DeepLinkListener />
           <Routes>
             {/* Legacy portfolio site, moved off the root for the product domain. */}
             <Route path="/portfolio" element={<Index />} />

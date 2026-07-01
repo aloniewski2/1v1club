@@ -151,9 +151,17 @@
     @apply border-border;
   }
 
+  html, body, #root {
+    height: 100%;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Hanken Grotesk', sans-serif;
+    /* Native-app feel in the Capacitor WKWebView shell: no rubber-band scroll
+       past the document edges, no gray tap-highlight flash on buttons/links. */
+    overscroll-behavior-y: contain;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -167,6 +175,13 @@
 }
 
 @layer utilities {
+  /* Safe-area insets (notch / home indicator) — no-ops on web since the env()
+     values default to 0 there. Requires viewport-fit=cover (set in index.html). */
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pl-safe { padding-left: env(safe-area-inset-left); }
+  .pr-safe { padding-right: env(safe-area-inset-right); }
+
   /* Mono micro-label — JetBrains Mono, ALL CAPS, wide tracking */
   .wg-label {
     font-family: 'JetBrains Mono', monospace;

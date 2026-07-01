@@ -29,8 +29,17 @@ export function formatStatus(status: WagerStatus): string {
     .join(' ')
 }
 
+/**
+ * The canonical public web origin, e.g. https://1v1club.com. On native (iOS
+ * app), `window.location.origin` is `capacitor://localhost` — not a shareable
+ * URL — so shareable links always prefer VITE_APP_WEB_ORIGIN when set.
+ */
+export function getPublicWebOrigin(): string {
+  return import.meta.env.VITE_APP_WEB_ORIGIN || window.location.origin
+}
+
 export function buildInviteUrl(inviteToken: string): string {
-  return `${window.location.origin}/join/${inviteToken}`
+  return `${getPublicWebOrigin()}/join/${inviteToken}`
 }
 
 export function dollarsToCenter(dollars: number): number {

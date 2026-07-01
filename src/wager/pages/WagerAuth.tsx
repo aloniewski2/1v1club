@@ -55,7 +55,7 @@ export default function WagerAuth() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-5">
+    <div className="pt-safe pb-safe flex min-h-screen items-center justify-center bg-background px-5">
       <div className="w-full max-w-[400px]">
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-2.5">

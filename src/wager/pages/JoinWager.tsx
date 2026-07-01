@@ -66,7 +66,7 @@ export default function JoinWager() {
 
   if (!wager) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-5">
+      <div className="pt-safe pb-safe flex min-h-screen items-center justify-center bg-background px-5">
         <div className="text-center">
           <h1 className="font-display text-xl font-extrabold text-ink">Challenge not found</h1>
           <p className="mt-1 text-sm text-muted-foreground">This invite link may be invalid.</p>
@@ -83,7 +83,7 @@ export default function JoinWager() {
   const ranked = wager.mode !== 'casual'
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background px-5 pb-8 pt-4">
+    <div className="pt-safe pb-safe mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background px-5 pb-8 pt-4">
       <div className="font-mono text-[11px] font-bold tracking-[0.12em] text-muted-foreground">YOU'RE INVITED</div>
 
       <h1 className="mt-5 font-display text-[28px] font-extrabold leading-[1.1] text-ink">
