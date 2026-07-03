@@ -4,8 +4,14 @@
     {
       "name": "portfolio-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": ["--prefix", "/Users/andrewloniewski/1v1Club", "run", "dev"],
       "port": 8080
+    },
+    {
+      "name": "marketing-site",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "/Users/andrewloniewski/1v1Club/site", "-l", "4321"],
+      "port": 4321
     }
   ]
 }
