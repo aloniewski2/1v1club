@@ -19,7 +19,6 @@ import JoinWager from "./wager/pages/JoinWager";
 import DeclareWinner from "./wager/pages/DeclareWinner";
 import ConnectReturn from "./wager/pages/ConnectReturn";
 import ConnectRefresh from "./wager/pages/ConnectRefresh";
-import WagerPreview from "./wager/pages/WagerPreview";
 import WagerInvite from "./wager/pages/WagerInvite";
 import WagerPayout from "./wager/pages/WagerPayout";
 import WagerDispute from "./wager/pages/WagerDispute";
@@ -54,8 +53,6 @@ const App = () => (
 
             {/* 1v1 Club — the app now lives at the root. */}
             <Route path="/auth" element={<WagerAuth />} />
-            {/* Dev-only design gallery; excluded from production builds. */}
-            {import.meta.env.DEV && <Route path="/preview" element={<WagerPreview />} />}
             <Route path="/join/:token" element={<JoinWager />} />
             <Route path="/" element={<WagerLayout />}>
               <Route index element={<WagerDashboard />} />
