@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 /* ============================================================
-   Wagerly design system — two themes:
+   1v1 Club design system — two themes:
    light = "Split"  (:root)   ·   dark = "Voltage" (.dark, default)
    Tokens transcribed from the design handoff. Identity rule:
    "You" is always cobalt (--you), opponent always coral (--rival).
@@ -43,7 +43,7 @@
 
     --radius: 0.875rem;
 
-    /* Wagerly identity + status tokens */
+    /* 1v1 Club identity + status tokens */
     --you: 232 100% 59%;               /* cobalt #2f4bff */
     --you-tint: 234 100% 96%;          /* #eceeff */
     --rival: 8 100% 59%;               /* coral #ff4a30 */
@@ -151,9 +151,17 @@
     @apply border-border;
   }
 
+  html, body, #root {
+    height: 100%;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Hanken Grotesk', sans-serif;
+    /* Native-app feel in the Capacitor WKWebView shell: no rubber-band scroll
+       past the document edges, no gray tap-highlight flash on buttons/links. */
+    overscroll-behavior-y: contain;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -167,6 +175,13 @@
 }
 
 @layer utilities {
+  /* Safe-area insets (notch / home indicator) — no-ops on web since the env()
+     values default to 0 there. Requires viewport-fit=cover (set in index.html). */
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pl-safe { padding-left: env(safe-area-inset-left); }
+  .pr-safe { padding-right: env(safe-area-inset-right); }
+
   /* Mono micro-label — JetBrains Mono, ALL CAPS, wide tracking */
   .wg-label {
     font-family: 'JetBrains Mono', monospace;

@@ -18,7 +18,7 @@ export default function WagerNotifications() {
     <div className="flex flex-col">
       <ScreenHeader
         label="NOTIFICATIONS"
-        onBack={() => navigate('/wager')}
+        onBack={() => navigate('/')}
         right={
           unreadCount > 0 ? (
             <button onClick={markAllRead} className="text-[11px] font-semibold" style={{ color: 'hsl(var(--win))' }}>Mark read</button>
@@ -34,7 +34,7 @@ export default function WagerNotifications() {
         <>
           <div className="wg-label mt-5">NEW</div>
           <div className="mt-2.5 flex flex-col gap-[9px]">
-            {unread.map((n) => <Row key={n.id} n={n} fresh onClick={() => n.wager_id && navigate(`/wager/${n.wager_id}`)} />)}
+            {unread.map((n) => <Row key={n.id} n={n} fresh onClick={() => n.wager_id && navigate(`/${n.wager_id}`)} />)}
           </div>
         </>
       )}
@@ -43,7 +43,7 @@ export default function WagerNotifications() {
         <>
           <div className="wg-label mt-[22px]">EARLIER</div>
           <div className="mt-2.5 flex flex-col gap-[9px] pb-4">
-            {read.map((n) => <Row key={n.id} n={n} onClick={() => n.wager_id && navigate(`/wager/${n.wager_id}`)} />)}
+            {read.map((n) => <Row key={n.id} n={n} onClick={() => n.wager_id && navigate(`/${n.wager_id}`)} />)}
           </div>
         </>
       )}

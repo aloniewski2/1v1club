@@ -33,7 +33,7 @@ export default function JoinWager() {
   }, [token])
 
   async function handleAccept() {
-    if (!user) return navigate(`/wager/auth?next=/wager/join/${token}`)
+    if (!user) return navigate(`/auth?next=/join/${token}`)
     if (!wager) return
     setAccepting(true)
     if (wager.created_by === user.id) {
@@ -43,14 +43,14 @@ export default function JoinWager() {
     }
     const { error } = await supabase
       .from('wagers')
-      .update({ opponent_id: user.id, status: 'opponent_joined', updated_at: new Date().toISOString() })
+      .update({ opponent_id: user.id, status: 'active', updated_at: new Date().toISOString() })
       .eq('id', wager.id)
       .eq('status', 'awaiting_opponent')
     setAccepting(false)
     if (error) toast.error('Failed to accept challenge: ' + error.message)
     else {
-      toast.success('Challenge accepted! Pay to activate.')
-      navigate(`/wager/${wager.id}/pay`)
+      toast.success("Challenge accepted! It's on.")
+      navigate(`/${wager.id}`)
     }
   }
 
@@ -66,7 +66,7 @@ export default function JoinWager() {
 
   if (!wager) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-5">
+      <div className="pt-safe pb-safe flex min-h-screen items-center justify-center bg-background px-5">
         <div className="text-center">
           <h1 className="font-display text-xl font-extrabold text-ink">Challenge not found</h1>
           <p className="mt-1 text-sm text-muted-foreground">This invite link may be invalid.</p>
@@ -79,10 +79,11 @@ export default function JoinWager() {
   const sport = SPORT_CONFIG[wager.sport]
   const alreadyJoined = wager.status !== 'awaiting_opponent'
   const creator = wager.creator_profile
-  const stakeStr = formatCents(wager.wager_amount_cents)
+  const categoryLabel = wager.category || wager.custom_sport_label || sport.label
+  const ranked = wager.mode !== 'casual'
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background px-5 pb-8 pt-4">
+    <div className="pt-safe pb-safe mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background px-5 pb-8 pt-4">
       <div className="font-mono text-[11px] font-bold tracking-[0.12em] text-muted-foreground">YOU'RE INVITED</div>
 
       <h1 className="mt-5 font-display text-[28px] font-extrabold leading-[1.1] text-ink">
@@ -96,27 +97,23 @@ export default function JoinWager() {
         <MatchupBar
           height={104}
           seam={28}
-          pot={formatPot(wager.wager_amount_cents)}
-          you={{ name: creator?.display_name ?? 'Creator', initial: initialsOf(creator?.display_name, 1), sub: `PAID ${stakeStr}` }}
-          rival={{ name: 'You', initial: initialsOf(user?.email, 1), sub: `PAY ${stakeStr}` }}
+          pot={ranked ? '+25 PTS' : 'CASUAL'}
+          you={{ name: creator?.display_name ?? 'Creator', initial: initialsOf(creator?.display_name, 1), sub: 'CHALLENGER' }}
+          rival={{ name: 'You', initial: initialsOf(user?.email, 1), sub: 'YOU' }}
         />
       </div>
 
       <div className="mt-3.5 rounded-[18px] border border-border bg-surface p-[18px]">
         <div className="flex items-center gap-2.5 text-ink">
           <SportGlyph sport={wager.sport} size={18} />
-          <span className="text-[15px] font-bold">{sport.label}</span>
+          <span className="text-[15px] font-bold">{categoryLabel}</span>
         </div>
         <div className="mt-2.5 text-sm font-medium text-ink/85">{wager.description}</div>
-        <div className="mt-3.5 flex flex-col gap-2 border-t border-border pt-3.5 text-[13px] font-medium text-muted-foreground">
-          <div className="flex justify-between"><span>Your stake</span><span className="tabular-nums text-ink">{stakeStr}</span></div>
-          <div className="flex justify-between"><span>Total pot</span><span className="tabular-nums text-ink">{formatPot(wager.wager_amount_cents)}</span></div>
-          <div className="flex items-center justify-between border-t border-border pt-2">
-            <span className="font-display text-[13px] font-extrabold text-ink">Winner takes</span>
-            <span className="font-display text-[17px] font-extrabold tabular-nums" style={{ color: 'hsl(var(--win))' }}>
-              {formatCents(calcPayout(wager.wager_amount_cents))}
-            </span>
-          </div>
+        <div className="mt-3.5 flex items-center justify-between border-t border-border pt-3.5 text-[13px] font-medium text-muted-foreground">
+          <span className="font-display text-[13px] font-extrabold text-ink">{ranked ? 'Ranked match' : 'Casual match'}</span>
+          <span className="font-display text-[17px] font-extrabold tabular-nums" style={{ color: 'hsl(var(--win))' }}>
+            {ranked ? '+25 pts to win' : 'For fun'}
+          </span>
         </div>
       </div>
 
@@ -128,7 +125,7 @@ export default function JoinWager() {
         ) : (
           <>
             <PrimaryCTA onClick={handleAccept} disabled={accepting}>
-              {accepting ? 'Accepting…' : `Accept & pay ${stakeStr}`}
+              {accepting ? 'Accepting…' : 'Accept challenge'}
             </PrimaryCTA>
             {!user && (
               <p className="mt-2.5 text-center text-[11px] font-medium text-muted-foreground">

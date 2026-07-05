@@ -41,13 +41,21 @@ serve(async (req: Request) => {
     if (role === 'creator' && wager.status !== 'pending_payment') throw new Error('Already paid')
     if (role === 'opponent' && wager.status !== 'opponent_joined') throw new Error('Not in correct state')
 
+    // Each player pays their own stake (may differ).
+    const stakeCents =
+      role === 'creator'
+        ? (wager.creator_stake_cents ?? wager.wager_amount_cents / 2)
+        : (wager.opponent_stake_cents ?? wager.wager_amount_cents / 2)
+
+    const label = wager.category || wager.custom_sport_label || wager.sport
+
     // Create PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: wager.wager_amount_cents,
+      amount: stakeCents,
       currency: 'usd',
       capture_method: 'automatic',
       metadata: { wager_id, role, user_id: user.id },
-      description: `Wagerly: ${wager.sport} challenge — ${role}`,
+      description: `Wagerly: ${label} — ${role}`,
     })
 
     // Store the intent ID on the wager

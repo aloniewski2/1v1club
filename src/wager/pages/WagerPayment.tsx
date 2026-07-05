@@ -26,7 +26,7 @@ function PaymentForm({ wagerId }: { wagerId: string }) {
     setLoading(true)
     const { error } = await stripe.confirmPayment({
       elements,
-      confirmParams: { return_url: `${window.location.origin}/wager/${wagerId}?paid=true` },
+      confirmParams: { return_url: `${window.location.origin}/${wagerId}?paid=true` },
     })
     setLoading(false)
     if (error) toast.error(error.message ?? 'Payment failed. Please try again.')
@@ -65,7 +65,7 @@ export default function WagerPayment() {
 
   useEffect(() => {
     if (searchParams.get('payment_intent_client_secret') || searchParams.get('paid')) {
-      navigate(`/wager/${id}`, { replace: true })
+      navigate(`/${id}`, { replace: true })
     }
   }, [searchParams, id, navigate])
 
@@ -98,16 +98,21 @@ export default function WagerPayment() {
     return (
       <div className="space-y-3 py-12 text-center">
         <p style={{ color: 'hsl(var(--rival))' }}>{intentError}</p>
-        <Button variant="outline" onClick={() => navigate(`/wager/${id}`)}>Back to challenge</Button>
+        <Button variant="outline" onClick={() => navigate(`/${id}`)}>Back to challenge</Button>
       </div>
     )
   }
 
   const sport = SPORT_CONFIG[wager.sport]
+  const categoryLabel = wager.category || wager.custom_sport_label || sport.label
+  const myStakeCents =
+    role === 'creator'
+      ? (wager.creator_stake_cents ?? wager.wager_amount_cents / 2)
+      : (wager.opponent_stake_cents ?? wager.wager_amount_cents / 2)
 
   return (
     <div className="flex flex-col">
-      <ScreenHeader label="PAY TO ACTIVATE" onBack={() => navigate(`/wager/${id}`)} />
+      <ScreenHeader label="PAY TO ACTIVATE" onBack={() => navigate(`/${id}`)} />
 
       <div className="mt-4 rounded-[18px] border border-border bg-surface p-[18px]">
         <div className="flex items-center gap-3">
@@ -115,7 +120,7 @@ export default function WagerPayment() {
             <SportGlyph sport={wager.sport} size={20} />
           </span>
           <div className="min-w-0">
-            <p className="font-bold text-ink">{sport.label} challenge</p>
+            <p className="font-bold text-ink">{categoryLabel}</p>
             <p className="truncate text-sm text-muted-foreground">{wager.description}</p>
           </div>
         </div>
@@ -123,7 +128,7 @@ export default function WagerPayment() {
           <PotDisplay wagerAmountCents={wager.wager_amount_cents} showBreakdown />
         </div>
         <p className="mt-3 text-center text-sm text-muted-foreground">
-          Your charge: <strong className="text-ink">{formatCents(wager.wager_amount_cents)}</strong>
+          Your stake: <strong className="text-ink">{formatCents(myStakeCents)}</strong>
         </p>
       </div>
 

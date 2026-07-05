@@ -3,15 +3,15 @@ import type { WagerEvent } from '../lib/wagerTypes'
 
 const EVENT_LABELS: Record<string, { label: string; icon: string }> = {
   created: { label: 'Challenge created', icon: '🏁' },
-  creator_paid: { label: 'Creator paid — challenge activated', icon: '💰' },
-  opponent_paid: { label: 'Opponent paid — match is live!', icon: '⚡' },
   winner_declared: { label: 'Winner declared', icon: '🗳️' },
   winner_confirmed: { label: 'Winner confirmed', icon: '✅' },
-  payout_sent: { label: 'Payout sent', icon: '🏆' },
+  forfeit_resolved: { label: 'Won by forfeit', icon: '🏆' },
+  voided: { label: 'Match voided — no result', icon: '🚫' },
   disputed: { label: 'Dispute opened', icon: '⚠️' },
+  dispute_evidence_submitted: { label: 'Dispute evidence submitted', icon: '📎' },
   dispute_resolved: { label: 'Dispute resolved', icon: '⚖️' },
+  proof_reuse_flagged: { label: 'Proof reuse flagged', icon: '🚩' },
   cancelled: { label: 'Challenge cancelled', icon: '❌' },
-  refunded: { label: 'Payments refunded', icon: '↩️' },
 }
 
 interface Props {

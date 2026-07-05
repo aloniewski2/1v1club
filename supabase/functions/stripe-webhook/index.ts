@@ -40,6 +40,13 @@ serve(async (req: Request) => {
         event_type: 'creator_paid',
         payload: { payment_intent_id: pi.id },
       })
+
+      // Record the stake as escrowed (display-only; released on settle/refund).
+      const creatorStake = wager.creator_stake_cents ?? Math.round(wager.wager_amount_cents / 2)
+      await supabaseAdmin.from('ledger_entries').insert({
+        user_id, wager_id, type: 'stake_hold', amount_cents: -creatorStake,
+        status: 'settled', description: `Stake escrowed · ${wager.category ?? wager.sport}`,
+      })
     } else if (role === 'opponent') {
       const declarationDeadline = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
       await supabaseAdmin.from('wagers').update({
@@ -55,6 +62,13 @@ serve(async (req: Request) => {
         actor_id: user_id,
         event_type: 'opponent_paid',
         payload: { payment_intent_id: pi.id },
+      })
+
+      // Record the opponent's stake as escrowed.
+      const opponentStake = wager.opponent_stake_cents ?? Math.round(wager.wager_amount_cents / 2)
+      await supabaseAdmin.from('ledger_entries').insert({
+        user_id, wager_id, type: 'stake_hold', amount_cents: -opponentStake,
+        status: 'settled', description: `Stake escrowed · ${wager.category ?? wager.sport}`,
       })
 
       // Notify creator that match is active
@@ -92,6 +106,21 @@ serve(async (req: Request) => {
         updated_at: new Date().toISOString(),
       }).eq('id', wager_id)
     }
+  }
+
+  if (
+    event.type === 'customer.subscription.created' ||
+    event.type === 'customer.subscription.updated' ||
+    event.type === 'customer.subscription.deleted'
+  ) {
+    const sub = event.data.object as Stripe.Subscription
+    const active = ['active', 'trialing', 'past_due'].includes(sub.status)
+    await supabaseAdmin.from('profiles').update({
+      is_pro: active,
+      subscription_status: sub.status,
+      pro_until: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
+      updated_at: new Date().toISOString(),
+    }).eq('stripe_customer_id', sub.customer as string)
   }
 
   if (event.type === 'account.updated') {

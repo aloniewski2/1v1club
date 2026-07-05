@@ -1,105 +1,83 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Pencil, Check, Link as LinkIcon } from 'lucide-react'
+import { Pencil, Check, Link as LinkIcon, Trophy, Smile } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { SPORT_CONFIG } from '../lib/wagerConstants'
-import { dollarsToCenter } from '../lib/wagerUtils'
-import SportPicker from '../components/SportPicker'
-import PotDisplay from '../components/PotDisplay'
 import ScreenHeader from '../components/ScreenHeader'
 import PrimaryCTA from '../components/PrimaryCTA'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import type { SportType } from '../lib/wagerTypes'
 
-const AMOUNTS = [10, 25, 50, 100]
+type Mode = 'ranked' | 'casual'
+
+const FREE_ACTIVE_LIMIT = 3
 
 export default function CreateWager() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
 
-  const [sport, setSport] = useState<SportType>('golf')
-  const [customSport, setCustomSport] = useState('')
-  const [amount, setAmount] = useState(50)
+  const [category, setCategory] = useState('')
+  const [mode, setMode] = useState<Mode>('ranked')
   const [description, setDescription] = useState('')
   const [editingBet, setEditingBet] = useState(false)
   const [matchDate, setMatchDate] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const amountCents = dollarsToCenter(amount)
-  const canSubmit = amount >= 5 && description.trim().length > 0 && (sport !== 'other' || customSport.trim())
+  const canSubmit = description.trim().length > 0
 
   async function handleSubmit() {
     if (!user || !canSubmit) {
-      if (!description.trim()) toast.error('Add the bet — what are you playing for?')
+      if (!description.trim()) toast.error('Describe the challenge first.')
       return
     }
+    // Free-tier cap on simultaneously-open challenges; Pro is unlimited.
+    if (!profile?.is_pro) {
+      const { count } = await supabase
+        .from('wagers')
+        .select('id', { count: 'exact', head: true })
+        .eq('created_by', user.id)
+        .in('status', ['awaiting_opponent', 'active', 'declaring'])
+      if ((count ?? 0) >= FREE_ACTIVE_LIMIT) {
+        toast.error(`Free plan allows ${FREE_ACTIVE_LIMIT} open challenges. Go Pro for unlimited.`)
+        navigate('/pro')
+        return
+      }
+    }
     setLoading(true)
-    const slug = `${Math.random().toString(36).slice(2, 6).toUpperCase()}-${sport.toUpperCase().slice(0, 4)}`
+    const slug = `${Math.random().toString(36).slice(2, 6).toUpperCase()}-CH`
     const { data: wager, error } = await supabase
       .from('wagers')
       .insert({
         slug,
         created_by: user.id,
-        sport,
-        custom_sport_label: sport === 'other' ? customSport : null,
+        sport: 'other',
+        custom_sport_label: category.trim() || null,
+        category: category.trim() || null,
         description: description.trim(),
         match_date: matchDate || null,
-        wager_amount_cents: amountCents,
-        status: 'pending_payment',
+        mode,
+        // Free-to-play: no money. Cash columns stay at 0.
+        wager_amount_cents: 0,
+        creator_stake_cents: 0,
+        opponent_stake_cents: 0,
+        status: 'awaiting_opponent',
       })
       .select()
       .single()
     setLoading(false)
     if (error) toast.error('Failed to create challenge: ' + error.message)
-    else navigate(`/wager/${wager.id}/pay`)
+    else navigate(`/${wager.id}/invite`)
   }
 
   return (
     <div className="flex min-h-[calc(100vh-2rem)] flex-col">
-      <ScreenHeader label="NEW CHALLENGE" onBack={() => navigate('/wager')} />
+      <ScreenHeader label="NEW CHALLENGE" onBack={() => navigate('/')} />
 
-      <h1 className="mt-4 font-display text-[28px] font-extrabold text-ink">Set the stakes.</h1>
+      <h1 className="mt-4 font-display text-[28px] font-extrabold text-ink">Throw down.</h1>
 
-      <div className="wg-label mt-5">SPORT</div>
-      <div className="mt-2.5">
-        <SportPicker value={sport} onChange={setSport} />
-      </div>
-      {sport === 'other' && (
-        <Input
-          className="mt-2.5"
-          placeholder="Describe the game — e.g. Foosball"
-          value={customSport}
-          onChange={(e) => setCustomSport(e.target.value)}
-        />
-      )}
-
-      <div className="wg-label mt-[22px]">STAKE — EACH PLAYER</div>
-      <div className="mt-2.5 flex gap-2">
-        {AMOUNTS.map((n) => {
-          const selected = amount === n
-          return (
-            <button
-              key={n}
-              onClick={() => setAmount(n)}
-              className={cn(
-                'flex-1 rounded-[12px] border py-3 text-center text-sm font-bold transition-all',
-                selected ? 'border-[1.5px] border-you bg-you-tint text-you' : 'border-border bg-surface text-ink'
-              )}
-            >
-              ${n}
-            </button>
-          )
-        })}
-      </div>
-
-      <div className="mt-3.5">
-        <PotDisplay wagerAmountCents={amountCents} showBreakdown />
-      </div>
-
-      <div className="wg-label mt-[22px]">THE BET</div>
+      {/* The challenge */}
+      <div className="wg-label mt-5">THE CHALLENGE</div>
       <div className="mt-2.5 flex items-center gap-2.5 rounded-[13px] border border-border bg-surface px-3.5 py-3">
         {editingBet ? (
           <input
@@ -108,22 +86,63 @@ export default function CreateWager() {
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => setEditingBet(false)}
             onKeyDown={(e) => e.key === 'Enter' && setEditingBet(false)}
-            placeholder="First to par, loser buys dinner."
+            placeholder="e.g. First to 11, winner takes bragging rights."
             className="flex-1 bg-transparent text-sm font-medium text-ink outline-none placeholder:text-muted-foreground"
           />
         ) : (
           <button onClick={() => setEditingBet(true)} className="flex flex-1 items-center justify-between gap-2.5 text-left">
             <span className={cn('text-sm font-medium', description ? 'text-ink' : 'text-muted-foreground')}>
-              {description || 'Tap to write the bet…'}
+              {description || 'Tap to write the challenge…'}
             </span>
             <Pencil className="h-[15px] w-[15px] shrink-0 text-muted-foreground" strokeWidth={2} />
           </button>
         )}
       </div>
 
-      <div className="wg-label mt-[22px]">MATCH DATE · OPTIONAL</div>
+      {/* Category */}
+      <div className="wg-label mt-[22px]">CATEGORY · OPTIONAL</div>
+      <Input
+        className="mt-2.5"
+        placeholder="e.g. Basketball, NBA 2K, Chess…"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        maxLength={40}
+      />
+
+      {/* Mode */}
+      <div className="wg-label mt-[22px]">MODE</div>
+      <div className="mt-2.5 flex gap-2.5">
+        <button
+          onClick={() => setMode('ranked')}
+          className={cn('flex flex-1 items-center gap-2.5 rounded-[13px] border p-3 text-left transition-all',
+            mode === 'ranked' ? 'border-[1.5px] border-you bg-you-tint' : 'border-border bg-surface')}
+        >
+          <Trophy className={cn('h-[18px] w-[18px]', mode === 'ranked' ? 'text-you' : 'text-muted-foreground')} strokeWidth={2} />
+          <div>
+            <div className="text-[13px] font-bold text-ink">Ranked</div>
+            <div className="text-[11px] font-medium text-muted-foreground">+25 pts to win</div>
+          </div>
+          {mode === 'ranked' && <Check className="ml-auto h-4 w-4 text-you" strokeWidth={2.5} />}
+        </button>
+        <button
+          onClick={() => setMode('casual')}
+          className={cn('flex flex-1 items-center gap-2.5 rounded-[13px] border p-3 text-left transition-all',
+            mode === 'casual' ? 'border-[1.5px] border-you bg-you-tint' : 'border-border bg-surface')}
+        >
+          <Smile className={cn('h-[18px] w-[18px]', mode === 'casual' ? 'text-you' : 'text-muted-foreground')} strokeWidth={2} />
+          <div>
+            <div className="text-[13px] font-bold text-ink">Casual</div>
+            <div className="text-[11px] font-medium text-muted-foreground">Just for fun</div>
+          </div>
+          {mode === 'casual' && <Check className="ml-auto h-4 w-4 text-you" strokeWidth={2.5} />}
+        </button>
+      </div>
+
+      {/* Date */}
+      <div className="wg-label mt-[22px]">DATE · OPTIONAL</div>
       <Input className="mt-2.5" type="date" value={matchDate} onChange={(e) => setMatchDate(e.target.value)} />
 
+      {/* Opponent */}
       <div className="wg-label mt-[22px]">OPPONENT</div>
       <div className="mt-2.5 flex items-center gap-3 rounded-[13px] border-[1.5px] border-you bg-you-tint px-3.5 py-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-you text-white">

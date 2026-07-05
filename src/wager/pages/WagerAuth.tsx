@@ -9,13 +9,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { SplitCoin, Wordmark } from '../components/Brand'
 
 export default function WagerAuth() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const next = new URLSearchParams(location.search).get('next') ?? '/wager'
+  const next = new URLSearchParams(location.search).get('next') ?? '/'
 
   const signInForm = useForm<SignInFormData>({ resolver: zodResolver(signInSchema) })
   const signUpForm = useForm<SignUpFormData>({ resolver: zodResolver(signUpSchema) })
@@ -54,12 +55,15 @@ export default function WagerAuth() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-5">
+    <div className="pt-safe pb-safe flex min-h-screen items-center justify-center bg-background px-5">
       <div className="w-full max-w-[400px]">
         <div className="mb-8 text-center">
-          <div className="font-mono text-[11px] font-bold tracking-[0.18em] text-muted-foreground">WAGERLY</div>
-          <h1 className="mt-2 font-display text-[34px] font-extrabold tracking-tight text-ink">Winner takes the pot.</h1>
-          <p className="mt-2 text-sm font-medium text-muted-foreground">Challenge friends. Stake real money. Get paid instantly.</p>
+          <div className="flex items-center justify-center gap-2.5">
+            <SplitCoin size={34} />
+            <Wordmark className="text-[30px]" />
+          </div>
+          <h1 className="mt-4 font-display text-[34px] font-extrabold tracking-tight text-ink">Settle it 1v1.</h1>
+          <p className="mt-2 text-sm font-medium text-muted-foreground">Challenge friends. Win matches. Climb the leaderboard.</p>
         </div>
 
         <div className="rounded-[20px] border border-border bg-surface p-6">
@@ -145,7 +149,7 @@ export default function WagerAuth() {
                   }
                 />
                 <label htmlFor="age-confirm" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
-                  I confirm that I am at least <strong>18 years old</strong> and agree to the Terms of Service. Wagerly is for adults only.
+                  I confirm that I am at least <strong>18 years old</strong> and agree to the Terms of Service.
                 </label>
               </div>
               {signUpForm.formState.errors.age_confirmed && (

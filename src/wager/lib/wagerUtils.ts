@@ -5,18 +5,17 @@ export function formatCents(cents: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
 }
 
-export function formatPot(wagerAmountCents: number): string {
-  return formatCents(wagerAmountCents * 2)
+// wager_amount_cents is now the TOTAL POT (creator_stake + opponent_stake).
+export function formatPot(potCents: number): string {
+  return formatCents(potCents)
 }
 
-export function calcPlatformFee(wagerAmountCents: number): number {
-  const pot = wagerAmountCents * 2
-  return Math.round(pot * (PLATFORM_FEE_PCT / 100))
+export function calcPlatformFee(potCents: number): number {
+  return Math.round(potCents * (PLATFORM_FEE_PCT / 100))
 }
 
-export function calcPayout(wagerAmountCents: number): number {
-  const pot = wagerAmountCents * 2
-  return pot - calcPlatformFee(wagerAmountCents)
+export function calcPayout(potCents: number): number {
+  return potCents - calcPlatformFee(potCents)
 }
 
 export function isInviteExpired(inviteExpiresAt: string): boolean {
@@ -30,8 +29,17 @@ export function formatStatus(status: WagerStatus): string {
     .join(' ')
 }
 
+/**
+ * The canonical public web origin, e.g. https://1v1club.com. On native (iOS
+ * app), `window.location.origin` is `capacitor://localhost` — not a shareable
+ * URL — so shareable links always prefer VITE_APP_WEB_ORIGIN when set.
+ */
+export function getPublicWebOrigin(): string {
+  return import.meta.env.VITE_APP_WEB_ORIGIN || window.location.origin
+}
+
 export function buildInviteUrl(inviteToken: string): string {
-  return `${window.location.origin}/wager/join/${inviteToken}`
+  return `${getPublicWebOrigin()}/join/${inviteToken}`
 }
 
 export function dollarsToCenter(dollars: number): number {
@@ -48,7 +56,7 @@ export function initialsOf(name: string | null | undefined, max = 2): string {
     .slice(0, max)
 }
 
-/** Sum of total pots (each wager = amount × 2), in cents. */
+/** Sum of total pots, in cents. */
 export function sumPot(wagers: { wager_amount_cents: number }[]): number {
-  return wagers.reduce((acc, w) => acc + w.wager_amount_cents * 2, 0)
+  return wagers.reduce((acc, w) => acc + w.wager_amount_cents, 0)
 }

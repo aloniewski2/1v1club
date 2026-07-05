@@ -32,8 +32,52 @@ export interface Profile {
   age_verified: boolean
   stripe_account_id: string | null
   stripe_account_ready: boolean
+  is_admin?: boolean
+  points?: number
+  wins?: number
+  losses?: number
+  stripe_customer_id?: string | null
+  is_pro?: boolean
+  subscription_status?: string | null
+  pro_until?: string | null
   created_at: string
   updated_at: string
+}
+
+export interface WagerDispute {
+  id: string
+  wager_id: string
+  opened_by: string | null
+  status: 'open' | 'resolved'
+  resolution_winner_id: string | null
+  resolution_note: string | null
+  resolved_by: string | null
+  resolved_at: string | null
+  evidence_deadline: string
+  created_at: string
+}
+
+export interface DisputeSubmission {
+  id: string
+  dispute_id: string
+  wager_id: string
+  user_id: string
+  statement: string
+  evidence_paths: string[]
+  claimed_winner_id: string | null
+  submitted_at: string
+}
+
+export interface ProofAsset {
+  id: string
+  wager_id: string
+  user_id: string
+  storage_path: string
+  sha256: string
+  context: string
+  duplicate_of: string | null
+  byte_size: number | null
+  created_at: string
 }
 
 export interface Wager {
@@ -43,9 +87,13 @@ export interface Wager {
   opponent_id: string | null
   sport: SportType
   custom_sport_label: string | null
+  category: string | null
   description: string
   match_date: string | null
   wager_amount_cents: number
+  creator_stake_cents: number
+  opponent_stake_cents: number
+  mode?: 'ranked' | 'casual'
   platform_fee_pct: number
   status: WagerStatus
   invite_token: string

@@ -10,8 +10,8 @@ import SportGlyph from '../components/SportGlyph'
 import StatusBadge from '../components/StatusBadge'
 import ThemeToggle from '../components/ThemeToggle'
 import PrimaryCTA from '../components/PrimaryCTA'
-import ConnectOnboardingBanner from '../components/ConnectOnboardingBanner'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SplitCoin } from '../components/Brand'
 import { SPORT_CONFIG } from '../lib/wagerConstants'
 import { formatPot, formatCents } from '../lib/wagerUtils'
 import { initialsOf, sumPot } from '../lib/wagerUtils'
@@ -33,11 +33,10 @@ export default function WagerDashboard() {
   const pending = wagers.filter((w: Wager) => PENDING_STATUSES.includes(w.status))
   const done = wagers.filter((w: Wager) => DONE_STATUSES.includes(w.status))
 
-  const completed = done.filter((w) => w.status === 'completed')
-  const wins = completed.filter((w) => w.confirmed_winner_id === user?.id).length
-  const losses = completed.filter((w) => w.confirmed_winner_id && w.confirmed_winner_id !== user?.id).length
+  const wins = profile?.wins ?? 0
+  const losses = profile?.losses ?? 0
+  const points = profile?.points ?? 0
   const winRate = wins + losses > 0 ? Math.round((wins / (wins + losses)) * 100) : 0
-  const inPlay = sumPot(active)
 
   const live = active[0]
   const firstName = profile?.display_name?.split(' ')[0] ?? 'there'
@@ -54,12 +53,15 @@ export default function WagerDashboard() {
       {/* Header */}
       <div className="flex items-start justify-between pt-2">
         <div>
-          <div className="font-mono text-[10px] font-bold tracking-[0.18em] text-muted-foreground">{dateLabel}</div>
+          <div className="flex items-center gap-1.5">
+            <SplitCoin size={15} />
+            <span className="font-mono text-[10px] font-bold tracking-[0.18em] text-muted-foreground">{dateLabel}</span>
+          </div>
           <h1 className="mt-0.5 font-display text-[25px] font-extrabold text-ink">Evening, {firstName}</h1>
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate('/wager/notifications')}
+            onClick={() => navigate('/notifications')}
             aria-label="Notifications"
             className="relative flex h-[42px] w-[42px] items-center justify-center rounded-full border border-border bg-surface text-ink transition-colors hover:bg-glyph"
           >
@@ -74,7 +76,7 @@ export default function WagerDashboard() {
             )}
           </button>
           <ThemeToggle />
-          <button onClick={() => navigate('/wager/profile')} aria-label="Profile">
+          <button onClick={() => navigate('/profile')} aria-label="Profile">
             <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-glyph text-[15px] font-bold text-ink">
               {initials}
             </span>
@@ -82,26 +84,20 @@ export default function WagerDashboard() {
         </div>
       </div>
 
-      {profile && !profile.stripe_account_ready && (
-        <div className="mt-4">
-          <ConnectOnboardingBanner />
-        </div>
-      )}
-
       {/* Live now */}
       {loading ? (
         <Skeleton className="mt-5 h-[200px] w-full rounded-[18px]" />
       ) : live ? (
         <>
           <div className="mt-5 font-mono text-[11px] font-bold tracking-[0.14em] text-muted-foreground">// LIVE NOW</div>
-          <LiveWagerCard wager={live} currentUserId={user!.id} onOpen={() => navigate(`/wager/${live.id}`)} />
+          <LiveWagerCard wager={live} currentUserId={user!.id} onOpen={() => navigate(`/${live.id}`)} />
         </>
       ) : null}
 
       {/* Stats strip */}
       <div className="mt-3 flex rounded-[14px] border border-border bg-surface">
         <Stat value={`${wins}–${losses}`} label="RECORD" />
-        <Stat value={formatCents(inPlay)} label="IN PLAY" bordered />
+        <Stat value={`${points}`} label="POINTS" bordered />
         <Stat value={`${winRate}%`} label="WIN RATE" accent bordered />
       </div>
 
@@ -144,7 +140,7 @@ export default function WagerDashboard() {
 
       {/* CTA */}
       <div className="mt-4">
-        <PrimaryCTA onClick={() => navigate('/wager/create')}>
+        <PrimaryCTA onClick={() => navigate('/create')}>
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           New challenge
         </PrimaryCTA>
@@ -192,9 +188,9 @@ function LiveWagerCard({ wager, currentUserId, onOpen }: { wager: Wager; current
           height={90}
           seam={26}
           bordered={false}
-          pot={formatPot(wager.wager_amount_cents)}
-          you={{ name: 'You', initial: initialsOf(me?.display_name, 1), sub: 'PAID' }}
-          rival={{ name: them?.display_name ?? 'Opponent', initial: initialsOf(them?.display_name, 1), sub: 'PAID' }}
+          pot={wager.mode === 'casual' ? 'CASUAL' : '+25 PTS'}
+          you={{ name: 'You', initial: initialsOf(me?.display_name, 1), sub: 'YOU' }}
+          rival={{ name: them?.display_name ?? 'Opponent', initial: initialsOf(them?.display_name, 1), sub: 'RIVAL' }}
         />
       </div>
       <div className="mt-[11px] text-[13px] font-medium text-ink/80">{wager.description}</div>
