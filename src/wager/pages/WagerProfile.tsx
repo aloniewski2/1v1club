@@ -89,7 +89,7 @@ export default function WagerProfile() {
 
       {/* Ranking card */}
       <button
-        onClick={() => navigate('/leaderboard')}
+        onClick={() => navigate('/points')}
         className="mt-3 flex items-center gap-3.5 rounded-[16px] px-[18px] py-4 text-left text-[hsl(var(--cta-ink))]"
         style={{ background: 'hsl(var(--cta-bg))', boxShadow: 'var(--cta-shadow)' }}
       >
@@ -97,10 +97,10 @@ export default function WagerProfile() {
           <Trophy className="h-5 w-5" strokeWidth={2} />
         </span>
         <div className="flex-1">
-          <div className="font-mono text-[11px] font-bold tracking-[0.1em] opacity-75">RANKING POINTS</div>
+          <div className="font-mono text-[11px] font-bold tracking-[0.1em] opacity-75">SEASON POINTS</div>
           <div className="mt-px font-display text-[22px] font-extrabold">{points} pts</div>
         </div>
-        <span className="rounded-[9px] px-3.5 py-2.5 text-[12px] font-bold" style={{ background: 'rgba(255,255,255,.16)' }}>Leaderboard</span>
+        <span className="rounded-[9px] px-3.5 py-2.5 text-[12px] font-bold" style={{ background: 'rgba(255,255,255,.16)' }}>Points hub</span>
       </button>
 
       <div className="mt-[22px] flex items-center justify-between">

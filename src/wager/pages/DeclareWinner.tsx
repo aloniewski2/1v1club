@@ -165,10 +165,10 @@ export default function DeclareWinner() {
 
       <div className="mt-4 flex items-center justify-between rounded-[16px] border border-border bg-surface px-[18px] py-4">
         <span className="text-[13px] font-semibold text-muted-foreground">
-          Winner of the {formatPot(wager.wager_amount_cents)} pot takes
+          Winner of this match takes
         </span>
         <span className="font-display text-[22px] font-extrabold" style={{ color: 'hsl(var(--win))' }}>
-          {formatCents(calcPayout(wager.wager_amount_cents))}
+          {wager.mode === 'casual' ? 'the W' : `${(wager.stake_points ?? 25) * 2} PTS`}
         </span>
       </div>
 
@@ -224,8 +224,8 @@ export default function DeclareWinner() {
             <AlertDialogDescription asChild>
               <div className="space-y-2">
                 <p>
-                  You're declaring <strong>{selectedProfile?.display_name}</strong> as the winner. They receive{' '}
-                  <strong>{formatCents(calcPayout(wager.wager_amount_cents))}</strong> if your opponent agrees. This cannot be changed.
+                  You're declaring <strong>{selectedProfile?.display_name}</strong> as the winner. They take{' '}
+                  <strong>{wager.mode === 'casual' ? 'the win' : `${(wager.stake_points ?? 25) * 2} PTS`}</strong> if your opponent agrees. This cannot be changed.
                 </p>
                 {score.trim() && <p className="text-sm">Score: <strong>{score.trim()}</strong></p>}
                 {proofFile && <p className="text-sm">Proof: <strong>{proofFile.name}</strong> will be uploaded.</p>}

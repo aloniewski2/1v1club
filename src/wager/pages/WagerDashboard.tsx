@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Bell } from 'lucide-react'
+import { Plus, Bell, Zap, Radio } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useWagers } from '../hooks/useWagers'
 import { useNotifications } from '../hooks/useNotifications'
@@ -35,8 +35,8 @@ export default function WagerDashboard() {
 
   const wins = profile?.wins ?? 0
   const losses = profile?.losses ?? 0
-  const points = profile?.points ?? 0
   const winRate = wins + losses > 0 ? Math.round((wins / (wins + losses)) * 100) : 0
+  const inPlay = active.reduce((n, w) => n + (w.mode === 'casual' ? 0 : (w.stake_points ?? 25)), 0)
 
   const live = active[0]
   const firstName = profile?.display_name?.split(' ')[0] ?? 'there'
@@ -60,6 +60,16 @@ export default function WagerDashboard() {
           <h1 className="mt-0.5 font-display text-[25px] font-extrabold text-ink">Evening, {firstName}</h1>
         </div>
         <div className="flex items-center gap-2">
+          {!profile?.is_pro && (
+            <button
+              onClick={() => navigate('/pro')}
+              aria-label="Go Pro"
+              className="flex h-[42px] w-[42px] items-center justify-center rounded-full border border-border bg-surface transition-colors hover:bg-glyph"
+              style={{ color: 'hsl(var(--amber, 40 70% 55%))' }}
+            >
+              <Zap className="h-[19px] w-[19px]" strokeWidth={2} fill="currentColor" />
+            </button>
+          )}
           <button
             onClick={() => navigate('/notifications')}
             aria-label="Notifications"
@@ -94,10 +104,27 @@ export default function WagerDashboard() {
         </>
       ) : null}
 
+      {/* Live scoreboard promo */}
+      {live && (
+        <button
+          onClick={() => navigate(`/${live.id}/score`)}
+          className="mt-3 flex w-full items-center gap-3 rounded-[13px] border-[1.5px] border-you bg-you-tint px-3.5 py-3 text-left"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-you text-white">
+            <Radio className="h-[18px] w-[18px]" strokeWidth={2} />
+          </span>
+          <span className="flex-1">
+            <span className="block text-[13px] font-bold text-ink">Live scoreboard</span>
+            <span className="block text-[11px] font-medium text-muted-foreground">Both players update & see it in real time</span>
+          </span>
+          <span className="font-mono text-[10px] font-bold tracking-[0.08em] text-you">TRY IT</span>
+        </button>
+      )}
+
       {/* Stats strip */}
       <div className="mt-3 flex rounded-[14px] border border-border bg-surface">
         <Stat value={`${wins}–${losses}`} label="RECORD" />
-        <Stat value={`${points}`} label="POINTS" bordered />
+        <Stat value={`${inPlay}`} label="PTS IN PLAY" bordered />
         <Stat value={`${winRate}%`} label="WIN RATE" accent bordered />
       </div>
 
@@ -188,7 +215,7 @@ function LiveWagerCard({ wager, currentUserId, onOpen }: { wager: Wager; current
           height={90}
           seam={26}
           bordered={false}
-          pot={wager.mode === 'casual' ? 'CASUAL' : '+25 PTS'}
+          pot={wager.mode === 'casual' ? 'CASUAL' : `${(wager.stake_points ?? 25) * 2} PTS`}
           you={{ name: 'You', initial: initialsOf(me?.display_name, 1), sub: 'YOU' }}
           rival={{ name: them?.display_name ?? 'Opponent', initial: initialsOf(them?.display_name, 1), sub: 'RIVAL' }}
         />

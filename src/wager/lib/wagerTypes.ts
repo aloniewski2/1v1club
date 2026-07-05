@@ -94,6 +94,7 @@ export interface Wager {
   creator_stake_cents: number
   opponent_stake_cents: number
   mode?: 'ranked' | 'casual'
+  stake_points?: number
   platform_fee_pct: number
   status: WagerStatus
   invite_token: string
