@@ -25,13 +25,13 @@ export default function CreateWager() {
   const [matchDate, setMatchDate] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const balance = profile?.points ?? 0
+  const balance = (profile?.points ?? 0) - (profile?.points_escrowed ?? 0)
   const canSubmit = description.trim().length > 0 && (mode === 'casual' || stake <= balance)
 
   async function handleSubmit() {
     if (!user || !canSubmit) {
       if (!description.trim()) toast.error('Describe the challenge first.')
-      else if (mode === 'ranked' && stake > balance) toast.error(`You only have ${balance} pts to stake.`)
+      else if (mode === 'ranked' && stake > balance) toast.error(`You only have ${balance} available pts to stake.`)
       return
     }
     // Free-tier cap on simultaneously-open challenges; Pro is unlimited.

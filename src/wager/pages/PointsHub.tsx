@@ -36,6 +36,8 @@ export default function PointsHub() {
   }, [user])
 
   const balance = profile?.points ?? 0
+  const escrowed = profile?.points_escrowed ?? 0
+  const available = balance - escrowed
 
   return (
     <div className="flex min-h-[calc(100vh-2rem)] flex-col">
@@ -50,7 +52,11 @@ export default function PointsHub() {
         <div className="mt-1 font-display text-[42px] font-extrabold leading-none">
           {balance.toLocaleString()} <span className="text-[18px]">PTS</span>
         </div>
-        <div className="mt-3 border-t pt-3 text-[12px] font-medium opacity-80" style={{ borderColor: 'rgba(255,255,255,.18)' }}>
+        <div className="mt-3 flex gap-4 border-t pt-3 text-[12px] font-medium opacity-90" style={{ borderColor: 'rgba(255,255,255,.18)' }}>
+          <span><strong>{available.toLocaleString()}</strong> available</span>
+          {escrowed > 0 && <span><strong>{escrowed.toLocaleString()}</strong> in active stakes</span>}
+        </div>
+        <div className="mt-1.5 text-[11px] font-medium opacity-70">
           Points are for bragging rights, streaks & the leaderboard — they never convert to cash.
         </div>
       </div>
