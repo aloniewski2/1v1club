@@ -67,8 +67,10 @@ serve(async (req: Request) => {
     // Free-to-play: award ranking points to the decided winner.
     const losingId = winner_id === wager.created_by ? wager.opponent_id : wager.created_by
     if (losingId) {
-      await supabaseAdmin.rpc('record_match_result', {
-        p_winner: winner_id, p_loser: losingId, p_ranked: (wager.mode ?? 'ranked') === 'ranked',
+      const stake = (wager.mode ?? 'ranked') === 'ranked' ? (wager.stake_points ?? 25) : 0
+      await supabaseAdmin.rpc('settle_match', {
+        p_winner: winner_id, p_loser: losingId, p_stake: stake,
+        p_wager: wager_id, p_label: wager.category ?? wager.sport ?? 'match',
       })
     }
     await supabaseAdmin.from('notifications').insert([

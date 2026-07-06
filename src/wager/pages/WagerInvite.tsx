@@ -48,7 +48,7 @@ export default function WagerInvite() {
         </div>
         <h1 className="mt-3.5 font-display text-[26px] font-extrabold text-ink">Challenge is live</h1>
         <p className="mt-1 text-[13px] font-medium text-muted-foreground">
-          {categoryLabel} · {ranked ? 'ranked · +25 pts to win' : 'casual'}
+          {categoryLabel} · {ranked ? `${(wager.stake_points ?? 25) * 2} PTS pot · winner takes all` : 'casual'}
         </p>
       </div>
 
@@ -56,7 +56,7 @@ export default function WagerInvite() {
         <MatchupBar
           height={96}
           seam={28}
-          pot={ranked ? '+25 PTS' : 'CASUAL'}
+          pot={ranked ? `${(wager.stake_points ?? 25) * 2} PTS` : 'CASUAL'}
           you={{ name: 'You', initial: initialsOf(profile?.display_name, 1), sub: 'YOU' }}
           rival={{ name: 'Pending', initial: '?', sub: 'NOT JOINED' }}
           rivalPending

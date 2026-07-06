@@ -70,7 +70,8 @@ export default function WagerDetail() {
 
   const rivalPending = !them
   const ranked = wager.mode !== 'casual'
-  const stakeStr = ranked ? '+25 PTS' : 'CASUAL'
+  const stake = ranked ? (wager.stake_points ?? 25) : 0
+  const stakeStr = ranked ? `${stake * 2} PTS` : 'CASUAL'
 
   return (
     <div className="flex min-h-[calc(100vh-2rem)] flex-col">
@@ -110,7 +111,7 @@ export default function WagerDetail() {
             <Trophy className="mx-auto mb-1.5 h-8 w-8 text-you" />
             <p className="font-display text-lg font-extrabold text-ink">You won.</p>
             <p className="text-sm text-muted-foreground">
-              {ranked ? '+25 ranking points added' : 'Casual win recorded'}
+              {ranked ? `+${stake} points added to your season total` : 'Casual win recorded'}
             </p>
           </motion.div>
         )}
@@ -118,7 +119,7 @@ export default function WagerDetail() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3.5 rounded-[18px] border border-border bg-surface p-4 text-center">
             <p className="font-display font-extrabold text-ink">Challenge complete</p>
             <p className="text-sm text-muted-foreground">
-              {them?.display_name ?? 'Your opponent'} took the win{ranked ? ' (+25 pts)' : ''}
+              {them?.display_name ?? 'Your opponent'} took the win{ranked ? ` (+${stake} pts)` : ''}
             </p>
           </motion.div>
         )}
@@ -131,7 +132,7 @@ export default function WagerDetail() {
           <span className="font-display text-sm font-extrabold text-ink">{ranked ? 'Ranked match' : 'Casual match'}</span>
         </div>
         <span className="font-display text-[17px] font-extrabold" style={{ color: 'hsl(var(--win))' }}>
-          {ranked ? '+25 pts to win' : 'For fun'}
+          {ranked ? `Winner gets ${stake * 2} PTS` : 'For fun'}
         </span>
       </div>
 
@@ -145,6 +146,23 @@ export default function WagerDetail() {
             {sport.label}
           </Chip>
         </div>
+      )}
+
+      {/* Live scoreboard */}
+      {them && (wager.status === 'active' || wager.status === 'declaring') && (
+        <button
+          onClick={() => navigate(`/${wager.id}/score`)}
+          className="mt-3 flex w-full items-center gap-3 rounded-[14px] border border-border bg-surface px-3.5 py-3 text-left"
+        >
+          <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[11px] bg-you-tint text-you font-display text-[15px] font-extrabold">
+            {'0–0'}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[13px] font-bold text-ink">Live scoreboard</span>
+            <span className="block text-[11px] font-medium text-muted-foreground">Both players update & see it in real time</span>
+          </span>
+          <span className="font-mono text-[10px] font-bold tracking-[0.08em] text-you">OPEN</span>
+        </button>
       )}
 
       {/* Trash talk */}

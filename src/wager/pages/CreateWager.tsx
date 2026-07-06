@@ -19,16 +19,19 @@ export default function CreateWager() {
 
   const [category, setCategory] = useState('')
   const [mode, setMode] = useState<Mode>('ranked')
+  const [stake, setStake] = useState(25)
   const [description, setDescription] = useState('')
   const [editingBet, setEditingBet] = useState(false)
   const [matchDate, setMatchDate] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const canSubmit = description.trim().length > 0
+  const balance = profile?.points ?? 0
+  const canSubmit = description.trim().length > 0 && (mode === 'casual' || stake <= balance)
 
   async function handleSubmit() {
     if (!user || !canSubmit) {
       if (!description.trim()) toast.error('Describe the challenge first.')
+      else if (mode === 'ranked' && stake > balance) toast.error(`You only have ${balance} pts to stake.`)
       return
     }
     // Free-tier cap on simultaneously-open challenges; Pro is unlimited.
@@ -57,6 +60,7 @@ export default function CreateWager() {
         description: description.trim(),
         match_date: matchDate || null,
         mode,
+        stake_points: mode === 'ranked' ? stake : 0,
         // Free-to-play: no money. Cash columns stay at 0.
         wager_amount_cents: 0,
         creator_stake_cents: 0,
@@ -120,7 +124,7 @@ export default function CreateWager() {
           <Trophy className={cn('h-[18px] w-[18px]', mode === 'ranked' ? 'text-you' : 'text-muted-foreground')} strokeWidth={2} />
           <div>
             <div className="text-[13px] font-bold text-ink">Ranked</div>
-            <div className="text-[11px] font-medium text-muted-foreground">+25 pts to win</div>
+            <div className="text-[11px] font-medium text-muted-foreground">Stake points on it</div>
           </div>
           {mode === 'ranked' && <Check className="ml-auto h-4 w-4 text-you" strokeWidth={2.5} />}
         </button>
@@ -137,6 +141,39 @@ export default function CreateWager() {
           {mode === 'casual' && <Check className="ml-auto h-4 w-4 text-you" strokeWidth={2.5} />}
         </button>
       </div>
+
+      {/* Stake (ranked only) */}
+      {mode === 'ranked' && (
+        <>
+          <div className="wg-label mt-[22px]">POINTS STAKED — EACH PLAYER</div>
+          <div className="mt-2.5 flex gap-2">
+            {[10, 25, 50, 100].map((n) => (
+              <button
+                key={n}
+                onClick={() => setStake(n)}
+                disabled={n > balance}
+                className={cn(
+                  'flex-1 rounded-[12px] border py-3 text-center text-sm font-bold transition-all disabled:opacity-40',
+                  stake === n ? 'border-[1.5px] border-you bg-you-tint text-you' : 'border-border bg-surface text-ink',
+                )}
+              >
+                {n} <span className="font-mono text-[9px]">PTS</span>
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center justify-between rounded-2xl border border-border bg-surface px-[18px] py-4">
+            <div>
+              <div className="wg-label tracking-[0.14em]">TOTAL STAKE</div>
+              <div className="mt-0.5 font-display text-[30px] font-extrabold leading-none text-ink">{stake * 2} <span className="text-[14px]">PTS</span></div>
+            </div>
+            <div className="text-right">
+              <div className="wg-label tracking-[0.1em]">WINNER GETS</div>
+              <div className="mt-0.5 font-display text-[22px] font-extrabold" style={{ color: 'hsl(var(--win))' }}>{stake * 2} PTS</div>
+              <div className="mt-px text-[10px] font-medium text-muted-foreground">no fee · you have {balance}</div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Date */}
       <div className="wg-label mt-[22px]">DATE · OPTIONAL</div>

@@ -54,8 +54,10 @@ serve(async (req: Request) => {
         const loser = declared === wager.created_by ? wager.opponent_id : wager.created_by
         const ranked = (wager.mode ?? 'ranked') === 'ranked'
         if (loser) {
-          await supabaseAdmin.rpc('record_match_result', {
-            p_winner: declared, p_loser: loser, p_ranked: ranked,
+          await supabaseAdmin.rpc('settle_match', {
+            p_winner: declared, p_loser: loser,
+            p_stake: ranked ? (wager.stake_points ?? 25) : 0,
+            p_wager: wager.id, p_label: wager.category ?? wager.sport ?? 'match',
           })
         }
 
@@ -68,7 +70,7 @@ serve(async (req: Request) => {
           {
             user_id: declared, wager_id: wager.id, type: 'forfeit_win',
             title: 'You won by forfeit 🏆',
-            body: ranked ? 'Your opponent never confirmed in time. +25 points.' : 'Your opponent never confirmed in time.',
+            body: ranked ? `Your opponent never confirmed in time. +${wager.stake_points ?? 25} points.` : 'Your opponent never confirmed in time.',
           },
           ...(loser ? [{
             user_id: loser, wager_id: wager.id, type: 'forfeit_loss',

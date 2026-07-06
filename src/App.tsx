@@ -32,6 +32,8 @@ import WagerLeaderboard from "./wager/pages/WagerLeaderboard";
 import WagerAddFriend from "./wager/pages/WagerAddFriend";
 import AdminReview from "./wager/pages/AdminReview";
 import WagerPro from "./wager/pages/WagerPro";
+import PointsHub from "./wager/pages/PointsHub";
+import LiveScore from "./wager/pages/LiveScore";
 import DeepLinkListener from "./wager/components/DeepLinkListener";
 import NativeStatusBar from "./wager/components/NativeStatusBar";
 
@@ -63,8 +65,10 @@ const App = () => (
               <Route path="friends" element={<WagerAddFriend />} />
               <Route path="admin" element={<AdminReview />} />
               <Route path="pro" element={<WagerPro />} />
+              <Route path="points" element={<PointsHub />} />
               <Route path=":id" element={<WagerDetail />} />
               <Route path=":id/declare" element={<DeclareWinner />} />
+              <Route path=":id/score" element={<LiveScore />} />
               <Route path=":id/invite" element={<WagerInvite />} />
               <Route path=":id/dispute" element={<WagerDispute />} />
               <Route path=":id/evidence" element={<WagerEvidence />} />

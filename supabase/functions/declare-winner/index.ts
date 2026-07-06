@@ -141,22 +141,25 @@ async function awardPoints(wager: any, winnerId: string) {
   const loserId = winnerId === wager.created_by ? wager.opponent_id : wager.created_by
   const ranked = (wager.mode ?? 'ranked') === 'ranked'
 
+  const stake = ranked ? (wager.stake_points ?? 25) : 0
   if (loserId) {
-    await supabaseAdmin.rpc('record_match_result', {
+    await supabaseAdmin.rpc('settle_match', {
       p_winner: winnerId,
       p_loser: loserId,
-      p_ranked: ranked,
+      p_stake: stake,
+      p_wager: wager.id,
+      p_label: wager.category ?? wager.sport ?? 'match',
     })
   }
 
-  const pts = ranked ? '+25 pts' : 'a casual win'
+  const pts = ranked ? `+${stake} pts` : 'a casual win'
   await supabaseAdmin.from('notifications').insert([
     {
       user_id: winnerId,
       wager_id: wager.id,
       type: 'match_won',
       title: 'You won! 🏆',
-      body: ranked ? 'You earned +25 ranking points.' : 'Casual win recorded.',
+      body: ranked ? `You won +${stake} points.` : 'Casual win recorded.',
     },
     ...(loserId ? [{
       user_id: loserId,

@@ -45,7 +45,7 @@ export default function WagerCard({ wager, currentUserId }: Props) {
         </span>
       </span>
       <span className="font-display text-[11px] font-extrabold tabular-nums" style={{ color: wager.mode === 'casual' ? 'hsl(var(--muted-foreground))' : 'hsl(var(--win))' }}>
-        {wager.mode === 'casual' ? 'CASUAL' : '+25'}
+        {wager.mode === 'casual' ? 'CASUAL' : `${(wager.stake_points ?? 25) * 2} PTS`}
       </span>
     </button>
   )

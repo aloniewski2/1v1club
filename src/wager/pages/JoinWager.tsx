@@ -81,6 +81,7 @@ export default function JoinWager() {
   const creator = wager.creator_profile
   const categoryLabel = wager.category || wager.custom_sport_label || sport.label
   const ranked = wager.mode !== 'casual'
+  const stake = ranked ? (wager.stake_points ?? 25) : 0
 
   return (
     <div className="pt-safe pb-safe mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-background px-5 pb-8 pt-4">
@@ -97,7 +98,7 @@ export default function JoinWager() {
         <MatchupBar
           height={104}
           seam={28}
-          pot={ranked ? '+25 PTS' : 'CASUAL'}
+          pot={ranked ? `${stake * 2} PTS` : 'CASUAL'}
           you={{ name: creator?.display_name ?? 'Creator', initial: initialsOf(creator?.display_name, 1), sub: 'CHALLENGER' }}
           rival={{ name: 'You', initial: initialsOf(user?.email, 1), sub: 'YOU' }}
         />
@@ -112,7 +113,7 @@ export default function JoinWager() {
         <div className="mt-3.5 flex items-center justify-between border-t border-border pt-3.5 text-[13px] font-medium text-muted-foreground">
           <span className="font-display text-[13px] font-extrabold text-ink">{ranked ? 'Ranked match' : 'Casual match'}</span>
           <span className="font-display text-[17px] font-extrabold tabular-nums" style={{ color: 'hsl(var(--win))' }}>
-            {ranked ? '+25 pts to win' : 'For fun'}
+            {ranked ? `Winner takes ${stake * 2} pts` : 'For fun'}
           </span>
         </div>
       </div>
@@ -125,7 +126,7 @@ export default function JoinWager() {
         ) : (
           <>
             <PrimaryCTA onClick={handleAccept} disabled={accepting}>
-              {accepting ? 'Accepting…' : 'Accept challenge'}
+              {accepting ? 'Accepting…' : ranked ? `Accept & stake ${stake} PTS` : 'Accept challenge'}
             </PrimaryCTA>
             {!user && (
               <p className="mt-2.5 text-center text-[11px] font-medium text-muted-foreground">
