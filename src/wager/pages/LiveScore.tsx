@@ -55,15 +55,16 @@ export default function LiveScore() {
 
   async function bump(delta: number) {
     const next = Math.max(0, myScore + delta)
-    const optimistic = { ...score, [myField]: next }
-    setScore(optimistic)
-    await supabase.from('live_scores').upsert({
-      wager_id: wager!.id,
-      creator_score: optimistic.creator_score,
-      opponent_score: optimistic.opponent_score,
-      updated_by: user!.id,
-      updated_at: new Date().toISOString(),
-    })
+    setScore((s) => ({ ...s, [myField]: next }))
+
+    // Write ONLY our own column so simultaneous updates from both players don't
+    // clobber each other (last-write-wins on a full-row upsert loses updates).
+    const patch = { [myField]: next, updated_by: user!.id, updated_at: new Date().toISOString() }
+    const { error } = await supabase.from('live_scores').update(patch).eq('wager_id', wager!.id)
+    // First bump on a match with no row yet: create it, then re-apply our column.
+    if (error) {
+      await supabase.from('live_scores').insert({ wager_id: wager!.id, ...patch })
+    }
   }
 
   return (
