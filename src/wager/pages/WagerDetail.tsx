@@ -16,6 +16,7 @@ import WagerTimeline from '../components/WagerTimeline'
 import MatchupBar from '../components/MatchupBar'
 import ScreenHeader from '../components/ScreenHeader'
 import PrimaryCTA from '../components/PrimaryCTA'
+import MultiplayerMatch from '../components/MultiplayerMatch'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Wager } from '../lib/wagerTypes'
@@ -60,6 +61,9 @@ export default function WagerDetail() {
 
   if (!wager) return <p className="py-12 text-center text-muted-foreground">Challenge not found.</p>
 
+  // Free-for-all / team matches use the roster-based multiplayer view.
+  if (wager.format && wager.format !== '1v1') return <MultiplayerMatch wager={wager} />
+
   const sport = SPORT_CONFIG[wager.sport]
   const statusConfig = STATUS_CONFIG[wager.status]
   const isCreator = wager.created_by === user?.id
@@ -84,6 +88,11 @@ export default function WagerDetail() {
       <h1 className="mt-[18px] max-w-[300px] font-display text-[28px] font-extrabold leading-[1.1] text-ink">
         {wager.description}
       </h1>
+      {wager.rules && (
+        <div className="mt-2.5 rounded-[12px] border border-border bg-surface px-3.5 py-2.5 text-[12px] font-medium text-ink/85">
+          <span className="font-bold">Rules:</span> {wager.rules}
+        </div>
+      )}
 
       <div className="mt-[18px]">
         <MatchupBar

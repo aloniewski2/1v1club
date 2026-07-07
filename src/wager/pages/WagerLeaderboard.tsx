@@ -1,13 +1,19 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, Crown } from 'lucide-react'
 import { useLeaderboard, type LeaderboardRow } from '../hooks/useLeaderboard'
-import { formatCents, initialsOf } from '../lib/wagerUtils'
+import { initialsOf } from '../lib/wagerUtils'
 import ScreenHeader from '../components/ScreenHeader'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
-const PODIUM_HEIGHTS = [72, 48, 36] // rank 1, 2, 3
+// Per-rank styling. #1 rides the brand cobalt; #2/#3 read as silver/bronze
+// tiers via neutral + amber, all from theme tokens so both themes hold up.
+const RANK = {
+  1: { h: 96, avatar: 60, ring: 'hsl(var(--you))', pedTint: 'hsl(var(--you-tint))', pedBorder: 'hsl(var(--you))', num: 'hsl(var(--you))' },
+  2: { h: 66, avatar: 48, ring: 'hsl(var(--muted-foreground))', pedTint: 'hsl(var(--surface))', pedBorder: 'hsl(var(--border))', num: 'hsl(var(--muted-foreground))' },
+  3: { h: 50, avatar: 48, ring: 'hsl(var(--amber, 38 92% 50%))', pedTint: 'hsl(var(--surface))', pedBorder: 'hsl(var(--border))', num: 'hsl(var(--amber, 38 92% 50%))' },
+} as const
 
 export default function WagerLeaderboard() {
   const navigate = useNavigate()
@@ -48,33 +54,58 @@ export default function WagerLeaderboard() {
           {/* Podium */}
           {podiumOrder.length >= 3 && (
             <>
-              <div className="mt-[18px] flex items-end gap-2">
+              <div className="mt-6 flex items-end gap-2.5">
                 {podiumOrder.map((p, i) => {
-                  const rank = i === 0 ? 2 : i === 1 ? 1 : 3
+                  const rank = (i === 0 ? 2 : i === 1 ? 1 : 3) as 1 | 2 | 3
+                  const r = RANK[rank]
                   const me = p.is_me
                   return (
-                    <div key={p.user_id} className="flex-1 text-center">
-                      <span
-                        className={cn('mx-auto flex items-center justify-center rounded-full font-bold', rank === 1 ? 'h-14 w-14 text-[19px] text-white' : 'h-12 w-12 text-[17px] text-ink')}
-                        style={rank === 1 ? { background: 'hsl(var(--you))', boxShadow: 'var(--pot-shadow)' } : { background: 'hsl(var(--glyph-bg))', border: '2px solid hsl(var(--muted-foreground))' }}
-                      >
-                        {initialsOf(p.display_name)}
-                      </span>
-                      <div className={cn('mt-[7px] font-bold text-ink', rank === 1 ? 'text-[13px]' : 'text-[12px]')}>{me ? 'You' : firstName(p.display_name)}</div>
-                      <div className="font-mono text-[11px] font-bold" style={{ color: me ? 'hsl(var(--win))' : 'hsl(var(--muted-foreground))' }}>{metricValue(p, metric)}</div>
-                      <div
-                        className="mt-2 flex items-start justify-center rounded-t-[10px] pt-2 font-display font-extrabold"
-                        style={{
-                          height: PODIUM_HEIGHTS[rank - 1],
-                          background: me ? 'hsl(var(--you-tint))' : 'hsl(var(--surface))',
-                          border: `${me ? 1.5 : 1}px solid ${me ? 'hsl(var(--you))' : 'hsl(var(--border))'}`,
-                          borderBottom: 'none',
-                          color: me ? 'hsl(var(--you))' : 'hsl(var(--muted-foreground))',
-                          fontSize: rank === 1 ? 20 : 16,
-                        }}
-                      >
-                        {rank}
+                    <div key={p.user_id} className="flex flex-1 flex-col items-center text-center">
+                      {/* Crown only over #1 */}
+                      <Crown
+                        className="mb-1 h-[18px] w-[18px]"
+                        strokeWidth={2.5}
+                        style={{ color: r.ring, opacity: rank === 1 ? 1 : 0 }}
+                        fill={rank === 1 ? r.ring : 'none'}
+                      />
+                      <div className="relative">
+                        <span
+                          className="flex items-center justify-center rounded-full font-bold text-white"
+                          style={{
+                            height: r.avatar, width: r.avatar,
+                            fontSize: rank === 1 ? 22 : 17,
+                            background: me ? 'hsl(var(--you))' : 'hsl(var(--rival))',
+                            boxShadow: rank === 1 ? 'var(--pot-shadow)' : 'none',
+                            outline: `2.5px solid ${r.ring}`, outlineOffset: 2,
+                          }}
+                        >
+                          {initialsOf(p.display_name)}
+                        </span>
+                        {/* Medal rank badge */}
+                        <span
+                          className="absolute -bottom-1 -right-1 flex h-[22px] w-[22px] items-center justify-center rounded-full font-display text-[12px] font-extrabold text-white"
+                          style={{ background: r.ring, border: '2px solid hsl(var(--bg, var(--background)))' }}
+                        >
+                          {rank}
+                        </span>
                       </div>
+                      <div className={cn('mt-2 truncate font-bold text-ink', rank === 1 ? 'text-[13px]' : 'text-[12px]')} style={{ maxWidth: '100%' }}>
+                        {me ? 'You' : firstName(p.display_name)}
+                      </div>
+                      <div className="font-mono text-[11px] font-bold" style={{ color: me ? 'hsl(var(--win))' : 'hsl(var(--muted-foreground))' }}>
+                        {metricValue(p, metric)}
+                      </div>
+                      {/* Pedestal */}
+                      <div
+                        className="mt-2 w-full rounded-t-[12px]"
+                        style={{
+                          height: r.h,
+                          background: me ? r.pedTint : 'hsl(var(--surface))',
+                          border: `${me ? 1.5 : 1}px solid ${me ? 'hsl(var(--you))' : r.pedBorder}`,
+                          borderBottom: 'none',
+                          boxShadow: rank === 1 ? 'inset 0 2px 0 hsl(var(--you) / .25)' : 'none',
+                        }}
+                      />
                     </div>
                   )
                 })}
