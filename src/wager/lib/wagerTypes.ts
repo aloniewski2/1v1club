@@ -96,6 +96,13 @@ export interface Wager {
   opponent_stake_cents: number
   mode?: 'ranked' | 'casual'
   stake_points?: number
+  format?: '1v1' | 'ffa' | 'teams'
+  team_count?: number | null
+  max_players?: number
+  rules?: string | null
+  declared_winner_user?: string | null
+  declared_winner_team?: number | null
+  confirmed_winner_team?: number | null
   platform_fee_pct: number
   status: WagerStatus
   invite_token: string
@@ -141,4 +148,15 @@ export interface Notification {
   body: string
   read: boolean
   created_at: string
+}
+
+export interface WagerParticipant {
+  id: string
+  wager_id: string
+  user_id: string
+  team_no: number | null
+  is_host: boolean
+  result_confirmed: boolean
+  created_at: string
+  profile?: Profile
 }

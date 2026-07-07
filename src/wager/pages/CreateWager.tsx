@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Pencil, Check, Link as LinkIcon, Trophy, Smile } from 'lucide-react'
+import { Pencil, Check, Link as LinkIcon, Trophy, Smile, User, Users, Swords } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 type Mode = 'ranked' | 'casual'
+type Format = '1v1' | 'ffa' | 'teams'
 
 const FREE_ACTIVE_LIMIT = 3
 
@@ -19,12 +20,18 @@ export default function CreateWager() {
 
   const [category, setCategory] = useState('')
   const [mode, setMode] = useState<Mode>('ranked')
+  const [format, setFormat] = useState<Format>('1v1')
+  const [ffaPlayers, setFfaPlayers] = useState(4)   // total players in FFA
+  const [teamSize, setTeamSize] = useState(2)        // players per side (teams = 2 sides)
   const [stake, setStake] = useState(25)
   const [description, setDescription] = useState('')
+  const [rules, setRules] = useState('')
   const [editingBet, setEditingBet] = useState(false)
   const [matchDate, setMatchDate] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const maxPlayers = format === '1v1' ? 2 : format === 'ffa' ? ffaPlayers : teamSize * 2
+  const pot = mode === 'ranked' ? stake * maxPlayers : 0
   const balance = (profile?.points ?? 0) - (profile?.points_escrowed ?? 0)
   const canSubmit = description.trim().length > 0 && (mode === 'casual' || stake <= balance)
 
@@ -34,13 +41,10 @@ export default function CreateWager() {
       else if (mode === 'ranked' && stake > balance) toast.error(`You only have ${balance} available pts to stake.`)
       return
     }
-    // Free-tier cap on simultaneously-open challenges; Pro is unlimited.
     if (!profile?.is_pro) {
       const { count } = await supabase
-        .from('wagers')
-        .select('id', { count: 'exact', head: true })
-        .eq('created_by', user.id)
-        .in('status', ['awaiting_opponent', 'active', 'declaring'])
+        .from('wagers').select('id', { count: 'exact', head: true })
+        .eq('created_by', user.id).in('status', ['awaiting_opponent', 'active', 'declaring'])
       if ((count ?? 0) >= FREE_ACTIVE_LIMIT) {
         toast.error(`Free plan allows ${FREE_ACTIVE_LIMIT} open challenges. Go Pro for unlimited.`)
         navigate('/pro')
@@ -58,10 +62,13 @@ export default function CreateWager() {
         custom_sport_label: category.trim() || null,
         category: category.trim() || null,
         description: description.trim(),
+        rules: rules.trim() || null,
         match_date: matchDate || null,
         mode,
+        format,
+        max_players: maxPlayers,
+        team_count: format === 'teams' ? 2 : null,
         stake_points: mode === 'ranked' ? stake : 0,
-        // Free-to-play: no money. Cash columns stay at 0.
         wager_amount_cents: 0,
         creator_stake_cents: 0,
         opponent_stake_cents: 0,
@@ -69,10 +76,34 @@ export default function CreateWager() {
       })
       .select()
       .single()
+
+    if (error) {
+      setLoading(false)
+      toast.error('Failed to create challenge: ' + error.message)
+      return
+    }
+
+    // Multiplayer: host joins the roster (locks their stake via trigger).
+    if (format !== '1v1') {
+      const { error: pErr } = await supabase.from('wager_participants').insert({
+        wager_id: wager.id, user_id: user.id, is_host: true,
+        team_no: format === 'teams' ? 1 : null,
+      })
+      if (pErr) {
+        setLoading(false)
+        toast.error('Could not set up the match: ' + pErr.message)
+        return
+      }
+    }
     setLoading(false)
-    if (error) toast.error('Failed to create challenge: ' + error.message)
-    else navigate(`/${wager.id}/invite`)
+    navigate(`/${wager.id}/invite`)
   }
+
+  const FORMATS: { id: Format; label: string; sub: string; icon: typeof User }[] = [
+    { id: '1v1', label: '1v1', sub: 'Head to head', icon: User },
+    { id: 'ffa', label: 'Free-for-all', sub: '3+ players, 1 winner', icon: Swords },
+    { id: 'teams', label: 'Teams', sub: '2 sides', icon: Users },
+  ]
 
   return (
     <div className="flex min-h-[calc(100vh-2rem)] flex-col">
@@ -85,8 +116,7 @@ export default function CreateWager() {
       <div className="mt-2.5 flex items-center gap-2.5 rounded-[13px] border border-border bg-surface px-3.5 py-3">
         {editingBet ? (
           <input
-            autoFocus
-            value={description}
+            autoFocus value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => setEditingBet(false)}
             onKeyDown={(e) => e.key === 'Enter' && setEditingBet(false)}
@@ -104,40 +134,79 @@ export default function CreateWager() {
       </div>
 
       {/* Category */}
-      <div className="wg-label mt-[22px]">CATEGORY · OPTIONAL</div>
-      <Input
-        className="mt-2.5"
-        placeholder="e.g. Basketball, NBA 2K, Chess…"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-        maxLength={40}
+      <div className="wg-label mt-[22px]">GAME · OPTIONAL</div>
+      <Input className="mt-2.5" placeholder="Any game — e.g. Basketball, NBA 2K, Chess, Beer pong…"
+        value={category} onChange={(e) => setCategory(e.target.value)} maxLength={40} />
+
+      {/* Custom rules */}
+      <div className="wg-label mt-[22px]">RULES / WIN CONDITION · OPTIONAL</div>
+      <textarea
+        value={rules} onChange={(e) => setRules(e.target.value)} rows={2} maxLength={500}
+        placeholder="Set your own rules — e.g. best of 3, first to 21 win by 2, 10-minute timer."
+        className="mt-2.5 w-full resize-none rounded-[13px] border border-border bg-surface px-3.5 py-3 text-[13px] font-medium leading-[1.45] text-ink outline-none placeholder:text-muted-foreground"
       />
+
+      {/* Format */}
+      <div className="wg-label mt-[22px]">FORMAT</div>
+      <div className="mt-2.5 flex gap-2">
+        {FORMATS.map(({ id, label, sub, icon: Icon }) => (
+          <button key={id} onClick={() => setFormat(id)}
+            className={cn('flex flex-1 flex-col items-center gap-1 rounded-[13px] border p-3 text-center transition-all',
+              format === id ? 'border-[1.5px] border-you bg-you-tint' : 'border-border bg-surface')}>
+            <Icon className={cn('h-[18px] w-[18px]', format === id ? 'text-you' : 'text-muted-foreground')} strokeWidth={2} />
+            <span className="text-[12px] font-bold text-ink">{label}</span>
+            <span className="text-[9px] font-medium leading-tight text-muted-foreground">{sub}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Player / team count */}
+      {format === 'ffa' && (
+        <>
+          <div className="wg-label mt-[22px]">PLAYERS</div>
+          <div className="mt-2.5 flex gap-2">
+            {[3, 4, 6, 8].map((n) => (
+              <button key={n} onClick={() => setFfaPlayers(n)}
+                className={cn('flex-1 rounded-[12px] border py-3 text-center text-sm font-bold transition-all',
+                  ffaPlayers === n ? 'border-[1.5px] border-you bg-you-tint text-you' : 'border-border bg-surface text-ink')}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {format === 'teams' && (
+        <>
+          <div className="wg-label mt-[22px]">TEAM SIZE (PER SIDE)</div>
+          <div className="mt-2.5 flex gap-2">
+            {[2, 3, 4].map((n) => (
+              <button key={n} onClick={() => setTeamSize(n)}
+                className={cn('flex-1 rounded-[12px] border py-3 text-center text-sm font-bold transition-all',
+                  teamSize === n ? 'border-[1.5px] border-you bg-you-tint text-you' : 'border-border bg-surface text-ink')}>
+                {n}v{n}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Mode */}
       <div className="wg-label mt-[22px]">MODE</div>
       <div className="mt-2.5 flex gap-2.5">
-        <button
-          onClick={() => setMode('ranked')}
+        <button onClick={() => setMode('ranked')}
           className={cn('flex flex-1 items-center gap-2.5 rounded-[13px] border p-3 text-left transition-all',
-            mode === 'ranked' ? 'border-[1.5px] border-you bg-you-tint' : 'border-border bg-surface')}
-        >
+            mode === 'ranked' ? 'border-[1.5px] border-you bg-you-tint' : 'border-border bg-surface')}>
           <Trophy className={cn('h-[18px] w-[18px]', mode === 'ranked' ? 'text-you' : 'text-muted-foreground')} strokeWidth={2} />
-          <div>
-            <div className="text-[13px] font-bold text-ink">Ranked</div>
-            <div className="text-[11px] font-medium text-muted-foreground">Stake points on it</div>
-          </div>
+          <div><div className="text-[13px] font-bold text-ink">Ranked</div>
+            <div className="text-[11px] font-medium text-muted-foreground">Stake points on it</div></div>
           {mode === 'ranked' && <Check className="ml-auto h-4 w-4 text-you" strokeWidth={2.5} />}
         </button>
-        <button
-          onClick={() => setMode('casual')}
+        <button onClick={() => setMode('casual')}
           className={cn('flex flex-1 items-center gap-2.5 rounded-[13px] border p-3 text-left transition-all',
-            mode === 'casual' ? 'border-[1.5px] border-you bg-you-tint' : 'border-border bg-surface')}
-        >
+            mode === 'casual' ? 'border-[1.5px] border-you bg-you-tint' : 'border-border bg-surface')}>
           <Smile className={cn('h-[18px] w-[18px]', mode === 'casual' ? 'text-you' : 'text-muted-foreground')} strokeWidth={2} />
-          <div>
-            <div className="text-[13px] font-bold text-ink">Casual</div>
-            <div className="text-[11px] font-medium text-muted-foreground">Just for fun</div>
-          </div>
+          <div><div className="text-[13px] font-bold text-ink">Casual</div>
+            <div className="text-[11px] font-medium text-muted-foreground">Just for fun</div></div>
           {mode === 'casual' && <Check className="ml-auto h-4 w-4 text-you" strokeWidth={2.5} />}
         </button>
       </div>
@@ -148,28 +217,22 @@ export default function CreateWager() {
           <div className="wg-label mt-[22px]">POINTS STAKED — EACH PLAYER</div>
           <div className="mt-2.5 flex gap-2">
             {[10, 25, 50, 100].map((n) => (
-              <button
-                key={n}
-                onClick={() => setStake(n)}
-                disabled={n > balance}
-                className={cn(
-                  'flex-1 rounded-[12px] border py-3 text-center text-sm font-bold transition-all disabled:opacity-40',
-                  stake === n ? 'border-[1.5px] border-you bg-you-tint text-you' : 'border-border bg-surface text-ink',
-                )}
-              >
+              <button key={n} onClick={() => setStake(n)} disabled={n > balance}
+                className={cn('flex-1 rounded-[12px] border py-3 text-center text-sm font-bold transition-all disabled:opacity-40',
+                  stake === n ? 'border-[1.5px] border-you bg-you-tint text-you' : 'border-border bg-surface text-ink')}>
                 {n} <span className="font-mono text-[9px]">PTS</span>
               </button>
             ))}
           </div>
           <div className="mt-3 flex items-center justify-between rounded-2xl border border-border bg-surface px-[18px] py-4">
             <div>
-              <div className="wg-label tracking-[0.14em]">TOTAL STAKE</div>
-              <div className="mt-0.5 font-display text-[30px] font-extrabold leading-none text-ink">{stake * 2} <span className="text-[14px]">PTS</span></div>
+              <div className="wg-label tracking-[0.14em]">TOTAL POT</div>
+              <div className="mt-0.5 font-display text-[30px] font-extrabold leading-none text-ink">{pot} <span className="text-[14px]">PTS</span></div>
             </div>
             <div className="text-right">
-              <div className="wg-label tracking-[0.1em]">WINNER GETS</div>
-              <div className="mt-0.5 font-display text-[22px] font-extrabold" style={{ color: 'hsl(var(--win))' }}>{stake * 2} PTS</div>
-              <div className="mt-px text-[10px] font-medium text-muted-foreground">no fee · you have {balance}</div>
+              <div className="wg-label tracking-[0.1em]">{format === 'teams' ? 'WINNING SIDE SPLITS' : 'WINNER GETS'}</div>
+              <div className="mt-0.5 font-display text-[22px] font-extrabold" style={{ color: 'hsl(var(--win))' }}>{pot} PTS</div>
+              <div className="mt-px text-[10px] font-medium text-muted-foreground">{maxPlayers} players · you have {balance}</div>
             </div>
           </div>
         </>
@@ -179,15 +242,17 @@ export default function CreateWager() {
       <div className="wg-label mt-[22px]">DATE · OPTIONAL</div>
       <Input className="mt-2.5" type="date" value={matchDate} onChange={(e) => setMatchDate(e.target.value)} />
 
-      {/* Opponent */}
-      <div className="wg-label mt-[22px]">OPPONENT</div>
+      {/* Invite */}
+      <div className="wg-label mt-[22px]">{format === '1v1' ? 'OPPONENT' : 'PLAYERS'}</div>
       <div className="mt-2.5 flex items-center gap-3 rounded-[13px] border-[1.5px] border-you bg-you-tint px-3.5 py-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-you text-white">
           <LinkIcon className="h-[18px] w-[18px]" strokeWidth={2} />
         </span>
         <div className="flex-1">
           <div className="text-[13px] font-bold text-ink">Invite by link</div>
-          <div className="mt-px text-[11px] font-medium text-muted-foreground">Anyone with the link can accept</div>
+          <div className="mt-px text-[11px] font-medium text-muted-foreground">
+            {format === '1v1' ? 'Anyone with the link can accept' : `Share with up to ${maxPlayers - 1} players`}
+          </div>
         </div>
         <Check className="h-[18px] w-[18px] text-you" strokeWidth={2.5} />
       </div>
