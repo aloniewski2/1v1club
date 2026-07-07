@@ -36,7 +36,7 @@ export default function WagerDashboard() {
   const wins = profile?.wins ?? 0
   const losses = profile?.losses ?? 0
   const winRate = wins + losses > 0 ? Math.round((wins / (wins + losses)) * 100) : 0
-  const inPlay = active.reduce((n, w) => n + (w.mode === 'casual' ? 0 : (w.stake_points ?? 25)), 0)
+  const inPlay = profile?.points_escrowed ?? 0
 
   const live = active[0]
   const firstName = profile?.display_name?.split(' ')[0] ?? 'there'

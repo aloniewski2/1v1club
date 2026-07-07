@@ -34,6 +34,7 @@ export interface Profile {
   stripe_account_ready: boolean
   is_admin?: boolean
   points?: number
+  points_escrowed?: number
   wins?: number
   losses?: number
   stripe_customer_id?: string | null

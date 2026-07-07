@@ -13,7 +13,7 @@ import type { Wager } from '../lib/wagerTypes'
 
 export default function JoinWager() {
   const { token } = useParams<{ token: string }>()
-  const { user, loading: authLoading } = useAuth()
+  const { user, profile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [wager, setWager] = useState<Wager | null>(null)
   const [loading, setLoading] = useState(true)
@@ -38,6 +38,13 @@ export default function JoinWager() {
     setAccepting(true)
     if (wager.created_by === user.id) {
       toast.error("You can't join your own challenge!")
+      setAccepting(false)
+      return
+    }
+    const need = wager.mode !== 'casual' ? (wager.stake_points ?? 25) : 0
+    const available = (profile?.points ?? 0) - (profile?.points_escrowed ?? 0)
+    if (need > available) {
+      toast.error(`You need ${need} available pts to accept — you have ${available}.`)
       setAccepting(false)
       return
     }
